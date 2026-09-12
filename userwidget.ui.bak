@@ -1,0 +1,1435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UserWidget</class>
+ <widget class="QWidget" name="UserWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>950</width>
+    <height>650</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>950</width>
+    <height>650</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource.qrc">
+    <normaloff>:/new/prefix1/picture/QQICON.png</normaloff>:/new/prefix1/picture/QQICON.png</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">#friendnoticepatternlabel{
+	width:30px;
+	color:black;
+}
+#friendnoticelist{
+	background-color:#F5F5F5;
+	border:1px solid #E0E0E0
+}
+#friendnotice{
+	height:30px;
+	background-color:#F5F5F5;
+	border:none;
+	color:black;
+}
+#friendnotice:hover{
+	background-color:#EBEBEB;
+}
+#friendnotice:pressed{
+	background-color:#D7D7D7;
+}
+#groupnotice{
+	height:30px;
+	background-color:#F5F5F5;
+	border:none;
+	color:black;
+}
+#groupnotice:hover{
+	background-color:#EBEBEB;
+}
+#groupnotice:pressed{
+	background-color:#D7D7D7;
+}
+#feiendnoticepagewidget{
+	background-color:#F5F5F5;
+}
+#noticepatternwidget{
+	background-color:#F5F5F5;
+}
+
+#groupchatlist{
+	background-color:#F5F5F5;
+	border:none;
+}
+#sendgroupmessageedit{
+	background-color:#F5F5F5;
+	border:none;
+}
+#userchatlist{
+	background-color:#F5F5F5;
+	border:none;
+}
+#widget_4{
+	background-color:#F5F5F5;
+}
+#widget_5{
+	background-color:#F5F5F5;
+}
+#more_2{
+	background-color:#EBEBEB;
+	border:none;
+	border-radius:15px;
+}
+#more_2:hover{
+	background-color:#E2E2E2;
+	border:none;
+}
+#more_2:pressed{
+	background-color:#CECECE;	
+	border:none;
+}
+#more{
+	background-color:#EBEBEB;
+	border:none;
+	border-radius:15px;
+}
+#more:hover{
+	background-color:#E2E2E2;
+	border:none;
+}
+#more:pressed{
+	background-color:#CECECE;	
+	border:none;
+}
+#messagelist{
+	border:none;
+}
+#titlebar{
+	background-color:#F1F1F1;
+}
+#messagepattern{
+	background-color:#F5F5F5;
+	border:none;
+}
+#messagepattern:hover{
+	background-color:#EBEBEB;
+	border:none;
+}
+#messagepattern:pressed{
+	background-color:#E7E7E7;	
+	border:none;
+}
+#friendpattern{
+	background-color:#F5F5F5;
+	border:none;
+}
+#friendpattern:hover{
+	background-color:#EBEBEB;
+	border:none;
+}
+#friendpattern:pressed{
+	background-color:#E7E7E7;
+	border:none;
+}
+#noticepattern{
+	background-color:#F5F5F5;
+	border:none;
+}
+#noticepattern:hover{
+	background-color:#EBEBEB;
+	border:none;
+}
+#noticepattern:pressed{
+	background-color:#E7E7E7;
+	border:none;
+}
+#selectwidget{
+	background-color:#F5F5F5;
+}
+#min{
+	border:none;
+}
+#min:hover{
+	background-color:#E8E8E8;
+}
+#min:pressed{
+	background-color:#D4D4D4;
+}
+#max{
+	border:none;
+}
+#max:hover{
+	background-color:#E8E8E8;
+}
+#max:pressed{
+	background-color:#D4D4D4;
+}
+#close{
+	border:none;
+}
+#close:hover{
+	background-color:#E8E8E8;
+}
+#close:pressed{
+	background-color:#D4D4D4;
+}
+#messagelist{
+	background-color:#F5F5F5
+}
+#messagewidget{
+	background-color:#F5F5F5
+}
+#sendusermessageedit{
+	background-color:#F5F5F5
+}
+#messagewidget_2{
+	background-color:#F5F5F5
+}
+#sendmessageedit_2{
+	background-color:#F5F5F5
+}
+#friendlist{
+	background-color:#F5F5F5
+}
+#selectframe{
+	background-color:#F5F5F5
+}
+#grouplist{
+	background-color:#F5F5F5
+}
+#switchbtn{
+	background-color:#F5F5F5
+}
+QPushButton#userfriend{
+    color: #333333;
+    border: none;
+    background-color: #EBEBEB;
+    padding: 6px 12px;
+    font-size:12px;
+}
+QPushButton#userfriend:checked{
+    color: #0C9EFF;
+    border: 1px solid #0066ff;
+    border-radius:3px;
+}
+QPushButton#userfriend:hover:!checked{
+    color:#AEAEAE;
+}
+QPushButton#usergroup{
+    color: #333333;
+    border: none;
+    background-color: #EBEBEB;
+    padding: 6px 12px;
+    font-size:12px;
+}
+QPushButton#usergroup:checked{
+    color: #0C9EFF;
+    border: 1px solid #0066ff;
+    border-radius:3px;
+}
+QPushButton#usergroup:hover:!checked{
+    color:#AEAEAE;
+}
+#switchbtn{
+	background-color:#F5F5F5;
+}
+
+
+QTreeWidget {
+	 show-decoration-selected: 1;
+     background-color: #F5F5F5;
+     border: none;
+     outline: none;
+}
+/*去滚动条边角*/
+QTreeWidget::corner {
+    background: transparent;
+    width:0px;
+}
+/* ==========分组（父节点：我的好友、特别关心）任何状态都不变色========== */
+QTreeWidget::item:has-children {
+    background-color: #F5F5F5;
+    color: #333333;
+    height:34px;
+    padding-left:0px;
+}
+QTreeWidget::item:has-children:hover {
+    background-color: #F5F5F5;
+}
+QTreeWidget::item:has-children:selected {
+    background-color: #F5F5F5;
+    color: #333333;
+}
+
+/* ==========好友子条目========== */
+QTreeWidget::item:!has-children {
+    background-color: #F5F5F5;
+    color:#222222;
+    height:36px;
+    padding-left:0px;
+}
+/* 悬浮浅灰 */
+QTreeWidget::item:!has-children:hover {
+    background-color: #f1f1f1;
+}
+/* 选中灰色 */
+QTreeWidget::item:!has-children:selected {
+    background-color: #e0e0e0;
+    color:#222222;
+}
+
+/* 滚动条 */
+QScrollBar:vertical {
+    width:8px;
+    background:transparent;
+}
+QScrollBar::handle:vertical {
+    background-color: #cccccc;
+    border-radius:4px;
+}
+QScrollBar::handle:vertical:hover {
+    background-color:#aaaaaa;
+}
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+    width:0px;
+    height:0px;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: transparent;
+}
+
+QTreeWidget::item
+{
+    border-bottom:1px solid #E8E8E8; /*分割线颜色*/
+}
+/* 去掉最后一条item多余底线（可选优化） */
+QTreeWidget::item:last-child
+{
+    border-bottom:none;
+}
+QTextEdit {
+    selection-background-color: transparent;
+    selection-color: #000000;
+    border: 1px solid #E0E0E0;
+}
+QTextEdit:focus {
+    border: 1px solid #E0E0E0;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="6,1,240">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="titlebar">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="logo">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="logoname">
+        <property name="text">
+         <string>QQ</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="usericon">
+        <property name="text">
+         <string>头像</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="username">
+        <property name="text">
+         <string>名字</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="min">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/picture/min.png</normaloff>:/picture/min.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>5</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="max">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/picture/max.png</normaloff>:/picture/max.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>5</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="close">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/picture/close.png</normaloff>:/picture/close.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_6">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>5</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame_2">
+     <property name="frameShape">
+      <enum>QFrame::HLine</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_6" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="3">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="qqwidget" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="5,1,32,68">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="selectwidget" native="true">
+           <widget class="QPushButton" name="messagepattern">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>20</y>
+              <width>31</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>消息</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/picture/message.png</normaloff>:/picture/message.png</iconset>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="friendpattern">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>50</y>
+              <width>31</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>联系人</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/picture/contact.png</normaloff>:/picture/contact.png</iconset>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="noticepattern">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>80</y>
+              <width>31</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>通知</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/picture/notice.png</normaloff>:/picture/notice.png</iconset>
+            </property>
+           </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frame">
+           <property name="frameShape">
+            <enum>QFrame::VLine</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QStackedWidget" name="patternstacked">
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <widget class="QWidget" name="friendpatternpage">
+            <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,1">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QWidget" name="widget_2" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_6" stretch="5,1,10,70">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="widget_5" native="true">
+                  <widget class="QPushButton" name="more_2">
+                   <property name="geometry">
+                    <rect>
+                     <x>240</x>
+                     <y>5</y>
+                     <width>41</width>
+                     <height>31</height>
+                    </rect>
+                   </property>
+                   <property name="toolTip">
+                    <string>更多</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="resource.qrc">
+                     <normaloff>:/picture/add.png</normaloff>:/picture/add.png</iconset>
+                   </property>
+                  </widget>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_8">
+                  <property name="frameShape">
+                   <enum>QFrame::HLine</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QWidget" name="switchbtn" native="true">
+                  <layout class="QHBoxLayout" name="horizontalLayout_2">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="userfriend">
+                     <property name="text">
+                      <string>好友</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="usergroup">
+                     <property name="text">
+                      <string>群聊</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QStackedWidget" name="friendandgroupstacked">
+                  <property name="currentIndex">
+                   <number>1</number>
+                  </property>
+                  <widget class="QWidget" name="page">
+                   <layout class="QVBoxLayout" name="verticalLayout">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QTreeWidget" name="grouplist">
+                      <column>
+                       <property name="text">
+                        <string>群聊</string>
+                       </property>
+                      </column>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                  <widget class="QWidget" name="page_2">
+                   <layout class="QVBoxLayout" name="verticalLayout_2">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QTreeWidget" name="friendlist">
+                      <column>
+                       <property name="text">
+                        <string>我的好友</string>
+                       </property>
+                      </column>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame_3">
+               <property name="frameShape">
+                <enum>QFrame::VLine</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="messagepatternpage">
+            <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="10,1">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QWidget" name="widget_3" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_7" stretch="5,1,80">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="widget_4" native="true">
+                  <widget class="QPushButton" name="more">
+                   <property name="geometry">
+                    <rect>
+                     <x>240</x>
+                     <y>10</y>
+                     <width>41</width>
+                     <height>31</height>
+                    </rect>
+                   </property>
+                   <property name="toolTip">
+                    <string>更多</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="resource.qrc">
+                     <normaloff>:/picture/add.png</normaloff>:/picture/add.png</iconset>
+                   </property>
+                  </widget>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frame_10">
+                  <property name="frameShape">
+                   <enum>QFrame::HLine</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QListWidget" name="messagelist"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame_6">
+               <property name="frameShape">
+                <enum>QFrame::VLine</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="noticepatternpage">
+            <layout class="QVBoxLayout" name="verticalLayout_19">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QWidget" name="noticepatternwidget" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_21" stretch="0,0,0">
+                <property name="spacing">
+                 <number>20</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>20</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="friendnotice">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>好友通知</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="groupnotice">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>群通知</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>502</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QStackedWidget" name="chatwidget">
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <widget class="QWidget" name="userchatpage">
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QFrame" name="userchatwidget">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_5" stretch="2,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="usermessagewidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_8">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QListWidget" name="userchatlist"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QWidget" name="sendusermessagwidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_4">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QFrame" name="frame_4">
+                     <property name="frameShape">
+                      <enum>QFrame::HLine</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Raised</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QTextEdit" name="sendusermessageedit"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="groupchatpage">
+            <layout class="QVBoxLayout" name="verticalLayout_16">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QFrame" name="groupchatwidget">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_13" stretch="2,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="groupmessagewidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_14">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QListWidget" name="groupchatlist"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QWidget" name="sendgroupmessagwidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_15">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QFrame" name="frame_7">
+                     <property name="frameShape">
+                      <enum>QFrame::HLine</enum>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Raised</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QTextEdit" name="sendgroupmessageedit"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="friendnoticepage">
+            <layout class="QVBoxLayout" name="verticalLayout_18">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QWidget" name="friendnoticepagewidget" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_22">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="friendnotcelistwidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_20" stretch="1,15">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QWidget" name="friendnoticepattern" native="true">
+                     <layout class="QHBoxLayout" name="horizontalLayout_7">
+                      <property name="spacing">
+                       <number>5</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>15</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="friendnoticepatternlabel">
+                        <property name="font">
+                         <font>
+                          <family>微软雅黑</family>
+                          <pointsize>12</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>好友通知</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_3">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>542</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QListWidget" name="friendnoticelist"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="groupnoticepage">
+            <layout class="QVBoxLayout" name="verticalLayout_25">
+             <item>
+              <widget class="QWidget" name="groupnoticepagewidget" native="true">
+               <layout class="QVBoxLayout" name="verticalLayout_23">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="groupnotcelistwidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_24" stretch="1,15">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QWidget" name="groupnoticepattern" native="true">
+                     <layout class="QHBoxLayout" name="horizontalLayout_8">
+                      <property name="spacing">
+                       <number>5</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>15</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="groupnoticepatternlabel">
+                        <property name="font">
+                         <font>
+                          <family>微软雅黑</family>
+                          <pointsize>12</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>群通知</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_4">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>542</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QListWidget" name="groupnoticelist"/>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>close</sender>
+   <signal>clicked()</signal>
+   <receiver>UserWidget</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>370</x>
+     <y>15</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>193</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>min</sender>
+   <signal>clicked()</signal>
+   <receiver>UserWidget</receiver>
+   <slot>showMinimized()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>310</x>
+     <y>15</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>193</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FriendNoticeItem</class>
+ <widget class="QWidget" name="FriendNoticeItem">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>350</width>
+    <height>96</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+#requesttime{
+	color:#999999;
+}
+#leavemessage{
+	color:#999999;
+}
+#verificationinfo{
+	color:#999999;
+}
+#selectedpage{
+	background-color:#FFFFFF;
+}
+#selectingpage{
+	background-color:#FFFFFF;
+}
+#requestername{
+	color:#0099FF;
+}
+#selected{
+	color:#999999;
+}
+#requestmethod{
+	color:balck;
+}
+
+#widget_2{
+	background-color:#FFFFFF;
+}
+#widget_3{
+	background-color:#FFFFFF;
+}
+/* 整体下拉框容器 */
+QComboBox
+{
+    border: 1px solid #666666;
+    border-radius: 6px;
+    font-size: 12px;
+    color: black;
+    background-color: #ffffff;
+	height:25px;
+	placeholder-text-color:#999999;
+}
+/* 鼠标悬浮样式 */
+QComboBox:hover
+{
+    border:1px solid #666666;
+}
+/* 点击聚焦样式 */
+QComboBox:focus
+{
+    border:1px solid #666666;
+    outline:none; }
+/* 下拉箭头按钮 */
+QComboBox::drop-down
+{
+    border: none;
+    width:36px;
+}
+
+QComboBox::down-arrow
+{
+	image: url(:/picture/downarrow.png);
+	width:12px;
+	height:12px;
+}
+QComboBox::down-arrow:on
+{
+   
+	image: url(:/picture/uparrow.png);
+}
+
+
+/* 下拉弹出列表 */
+QComboBox QAbstractItemView
+{
+	border-radius:8px;
+    background: transparent;
+    outline: none;
+	padding:0px;
+}
+/* 下拉列表条目 */
+QComboBox QAbstractItemView::item
+{
+    height: 36px;
+	color:black;
+	border-radius:8px;
+	margin:2px;
+}
+QComboBox QAbstractItemView::item:hover
+{
+    background-color: #F5F5F5;
+}
+QComboBox QAbstractItemView::item:selected
+{
+    background-color: #E0E0E0;
+}
+
+
+/* 可编辑模式内置LineEdit */
+QComboBox QLineEdit
+{
+    border:none;
+    background:transparent;
+}</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,1">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="widget_2" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="widget" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="requestername">
+           <property name="text">
+            <string>requestername</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="requestmethod">
+           <property name="text">
+            <string>请求加为好友</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="requesttime">
+           <property name="text">
+            <string>time</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_3" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="leavemessage">
+           <property name="text">
+            <string>留言：</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="verificationinfo">
+           <property name="text">
+            <string>verificationinfo</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="selectingpage">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>25</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QComboBox" name="select"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="selectedpage">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>25</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="selected">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>selected</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

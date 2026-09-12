@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ItemWidget</class>
+ <widget class="QWidget" name="ItemWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>430</width>
+    <height>177</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QPushButton#add{
+	border-radius:8px;
+	height:30px;
+	background-color:#0099FF;
+	color:#ffffff;
+}
+QPushButton#add:hover{
+	background-color:#008DEB;
+	color:#ffffff;
+}
+QPushButton#add:pressed{
+	background-color:#0081D6;
+	color:#40A1E0;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="4,1">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="10,1">
+      <item>
+       <widget class="QLabel" name="info">
+        <property name="text">
+         <string>info</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="add">
+        <property name="text">
+         <string>添加</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_2" native="true">
+     <widget class="QLabel" name="message">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>20</y>
+        <width>40</width>
+        <height>12</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>message</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

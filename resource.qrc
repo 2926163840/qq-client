@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>picture/close.png</file>
+        <file>picture/max.png</file>
+        <file>picture/min.png</file>
+        <file>picture/remax.png</file>
+        <file>picture/contact.png</file>
+        <file>picture/message.png</file>
+        <file>picture/add.png</file>
+        <file>picture/downarrow.png</file>
+        <file>picture/uparrow.png</file>
+        <file>picture/search.png</file>
+        <file>picture/notice.png</file>
+        <file>picture/more.png</file>
+    </qresource>
+    <qresource prefix="/new/prefix1">
+        <file>picture/QQICON.png</file>
+        <file>picture/notkeyword.png</file>
+        <file>picture/notresult.png</file>
+        <file>picture/NotNotice.png</file>
+        <file>picture/QQBackground.png</file>
+    </qresource>
+</RCC>

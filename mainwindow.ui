@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>320</width>
+    <height>440</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>320</width>
+    <height>440</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>320</width>
+    <height>440</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QPushButton{
+	border-radius:8px;
+}
+QPushButton#passwordlogin{
+	background-color:transparent;
+	color:#2036ff;
+}
+QPushButton#registeruser{
+	background-color:transparent;
+	color:#2036ff;
+}
+QPushButton#login{
+	background-color:#0099FF;
+	color:#ffffff;
+}
+QPushButton#login:pressed{
+	background-color:#0081D6;
+	color:#40A1E0;
+}
+QLineEdit{
+	border-radius:4px;
+    background-color:#ffffff;
+    border:1px solid #666666;
+    color:black;
+    font-size: 18px;
+	placeholder-text-color:#999999;
+	text-align:center;
+
+}
+QLineEdit:hover{
+    border:1px solid #666666;
+}
+QLineEdit:focus{
+    border:1px solid #666666;
+    outline:none; 
+}
+/* 整体下拉框容器 */
+QComboBox
+{
+    border: 1px solid #666666;
+    border-radius: 6px;
+    font-size: 18px;
+    color: balck;
+    background-color: #ffffff;
+	placeholder-text-color:#999999;
+	padding-left:35px;
+}
+/* 鼠标悬浮样式 */
+QComboBox:hover
+{
+    border:1px solid #666666;
+}
+/* 点击聚焦样式 */
+QComboBox:focus
+{
+    border:1px solid #666666;
+    outline:none; }
+/* 下拉箭头按钮 */
+QComboBox::drop-down
+{
+    border: none;
+    width:36px;
+}
+
+QComboBox::down-arrow
+{
+	image: url(:/picture/downarrow.png);
+	width:12px;
+	height:12px;
+}
+QComboBox::down-arrow:on
+{
+   
+	image: url(:/picture/uparrow.png);
+}
+
+
+/* 下拉弹出列表 */
+QComboBox QAbstractItemView
+{
+	border-radius:8px;
+    background: transparent;
+    outline: none;
+	padding:0px;
+}
+/* 下拉列表条目 */
+QComboBox QAbstractItemView::item
+{
+    height: 36px;
+	color:black;
+	border-radius:8px;
+	margin:2px;
+}
+QComboBox QAbstractItemView::item:hover
+{
+    background-color: #F5F5F5;
+}
+QComboBox QAbstractItemView::item:selected
+{
+    background-color: #E0E0E0;
+}
+
+
+/* 可编辑模式内置LineEdit */
+QComboBox QLineEdit
+{
+    border:none;
+    background:transparent;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,4,6,6">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="titlebar">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="8,1,1">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>247</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resource.qrc">
+           <normaloff>:/picture/more.png</normaloff>:/picture/more.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="close">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resource.qrc">
+           <normaloff>:/picture/close.png</normaloff>:/picture/close.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_4" native="true">
+      <widget class="QLabel" name="Icon">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>30</y>
+         <width>91</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_3" native="true">
+      <widget class="QLineEdit" name="password">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>70</y>
+         <width>251</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="maxLength">
+        <number>16</number>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>密码</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="account">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>20</y>
+         <width>251</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>账号</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="autologin">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>120</y>
+         <width>91</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>自动登入</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="rememberpwd">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>120</y>
+         <width>91</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>记住密码</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widget_2" native="true">
+      <widget class="QWidget" name="widget" native="true">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>40</y>
+         <width>201</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,1,3">
+        <item>
+         <widget class="QPushButton" name="passwordlogin">
+          <property name="text">
+           <string>密码登入</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>|</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="registeruser">
+          <property name="text">
+           <string>注册账号</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="login">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>0</y>
+         <width>251</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>登入</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
+ <connections/>
+</ui>

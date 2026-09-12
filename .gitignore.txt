@@ -1,0 +1,16 @@
+# Qt 构建产物
+build/
+build-*/
+*.o
+*.obj
+*.exe
+debug/
+release/
+
+# 备份文件
+*.bak
+
+# Qt Creator 配置
+.qtcreator/
+*.pro.user
+*.user

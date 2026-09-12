@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>registerUser</class>
+ <widget class="QDialog" name="registerUser">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>600</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>600</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>12</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QPushButton#fastregister{
+	background-color:#0099FF;
+	color:#ffffff;
+	border-radius:8px;
+}
+QPushButton#fastregister:pressed{
+	background-color:#0081D6;
+	color:#40A1E0;
+	border-radius:8px;
+}
+QPushButton#getaccount{
+	background-color:#aa00ff;
+	color:#ffffff;
+	border-radius:8px;
+}
+QPushButton#getaccount:pressed{
+	background-color:#6d00a4;
+	color:#40A1E0;
+	border-radius:8px;
+}
+QLineEdit{
+    background-color:#ffffff;
+    border:1px solid #666666;
+    color:#black;
+	placeholder-text-color:#999999;
+	border-radius:4px;
+}
+QLineEdit:hover{
+    border:1px solid #666666;
+	border-radius:4px;
+}
+QLineEdit:focus{
+    border:1px solid #666666;
+    outline:none; 
+	border-radius:4px;
+}
+QLabel#passwordtip{
+	color:#ff0000
+}
+QLabel#accounttip{
+	color:#ff0000
+}
+</string>
+  </property>
+  <widget class="QLineEdit" name="registeraccount">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>120</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="registerPassword">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>200</y>
+     <width>231</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+  </widget>
+  <widget class="QLabel" name="welcomqq">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>40</y>
+     <width>161</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>黑体</family>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>欢迎注册QQ</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="fastregister">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>280</y>
+     <width>221</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>立即注册</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="getusername">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>120</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>获取用户名</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="accounttip">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>170</y>
+     <width>231</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="passwordtip">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>250</y>
+     <width>231</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

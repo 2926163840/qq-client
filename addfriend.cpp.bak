@@ -1,0 +1,273 @@
+#include "addfriend.h"
+#include "ui_addfriend.h"
+
+AddFriend::AddFriend(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::AddFriend)
+{
+    ui->setupUi(this);
+    // 去掉标原生题栏
+    setWindowFlag(Qt::FramelessWindowHint,Qt::NoDropShadowWindowHint);
+    //延迟设置初始背景
+    QTimer::singleShot(50,this,[this]{
+        //要手动切换一下不然第二页一开始没有展示默认不会初始化位置不对
+        ui->tabWidget->setCurrentIndex(1);
+        ui->tabWidget->setCurrentIndex(0);
+        //初始状态为关键词背景1
+        setBackGround(ui->userlist,user_backgroundflag);
+        setBackGround(ui->grouplist,group_backgroundflag);
+    });
+}
+
+AddFriend::~AddFriend()
+{
+    delete ui;
+}
+
+//按下获取坐标
+void AddFriend::mousePressEvent(QMouseEvent *event)
+{
+    // event->pos() 是窗口内部坐标，判断点击落在你的标题栏widget区域
+    QRect titleBarRect = ui->titlebar->geometry();
+    if(event->button() == Qt::LeftButton && titleBarRect.contains(event->pos()))
+    {
+        m_isWindowDragging = true;
+        // 记录鼠标相对于窗口左上角的偏移
+        m_windowDragStartPos = event->globalPos() - this->frameGeometry().topLeft();
+        event->accept();
+    }
+    QWidget::mousePressEvent(event);
+}
+//移动拖拽
+void AddFriend::mouseMoveEvent(QMouseEvent *event)
+{
+    if(m_isWindowDragging && event->buttons() & Qt::LeftButton)
+    {
+        this->move(event->globalPos() - m_windowDragStartPos);
+        event->accept();
+    }
+    QWidget::mouseMoveEvent(event);
+}
+//松手取消
+void AddFriend::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_isWindowDragging = false;
+    QWidget::mouseReleaseEvent(event);
+}
+//双击放大
+void AddFriend::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    // 双击范围限制在自定义标题栏内
+    QRect titleBarRect = ui->titlebar->rect();
+    if(titleBarRect.contains(event->pos()))
+    {
+        FullScreen();
+        //成功消费事件不在向上传递
+        event->accept();
+    }
+    QWidget::mouseDoubleClickEvent(event);
+}
+
+//搜索失败
+void AddFriend::SearchFailed()
+{
+    HoverTip::showTip(this,"没有搜索到相关内容");
+}
+//搜索成功
+void AddFriend::SearchSuccess(QJsonArray friendinfo,QJsonArray groupinfo)
+{
+    //无搜索信息换背景
+    if(friendinfo.isEmpty())
+    {
+        user_backgroundflag=NOTRESULT;
+        setBackGround(ui->userlist,user_backgroundflag);
+    }
+    //有搜索信息换背景
+    else
+    {
+        user_backgroundflag=HAVINGRESULT;
+        setBackGround(ui->userlist,user_backgroundflag);
+        //添加信息到好友列表里面
+        for(auto info:friendinfo)
+        {
+            //再次搜索前先清空原本的内容
+            ui->userlist->clear();
+            //设置条目信息
+            QString iteminfo=QString("%1(%2)").arg(info.toObject().value("friendname").toString())
+                                   .arg(info.toObject().value("friendaccount").toString());
+            //创建条目和条目窗口
+            ItemWidget*itemwidget=new ItemWidget(iteminfo,ui->userlist);
+            QListWidgetItem*item=new QListWidgetItem;
+            //设置条目对应的群聊信息id
+            item->setData(Qt::UserRole,info.toObject().value("friendid").toInt());
+            //将条目设置到userlist内
+            ui->userlist->addItem(item);
+            //设置条目大小0代表自动铺满x轴
+            item->setSizeHint(itemwidget->sizeHint());
+            //给条目设置一个内嵌widget
+            ui->userlist->setItemWidget(item,itemwidget);
+            //弹出添加好友窗口
+            connect(itemwidget,&ItemWidget::addClicked,this,[=,this]{
+                //显示添加好友窗口设置关闭自动析构
+                AddFriendWidget*addwidget=new AddFriendWidget(info.toObject().value("friendid").toInt(),iteminfo);
+                addwidget->setAttribute(Qt::WA_DeleteOnClose);
+                addwidget->show();
+                //接收传递的信息数据继续上传
+                connect(addwidget,&AddFriendWidget::sendjson,this,&AddFriend::sendJson);
+            });
+        }
+    }
+    //无搜索信息换背景
+    if(groupinfo.isEmpty())
+    {
+        group_backgroundflag=NOTRESULT;
+        setBackGround(ui->grouplist,group_backgroundflag);
+    }
+    else
+    {
+        group_backgroundflag=HAVINGRESULT;
+        setBackGround(ui->grouplist,group_backgroundflag);
+        //添加信息到群聊列表里面
+        for(auto info:groupinfo)
+        {
+            //再次搜索前先清空原本的内容
+            ui->grouplist->clear();
+            //设置条目信息
+            QString iteminfo=QString("%1(%2)").arg(info.toObject().value("groupname").toString()
+                                                         .arg(info.toObject().value("groupaccount").toString()));
+            //创建条目和条目窗口
+            ItemWidget*itemwidget=new ItemWidget(iteminfo,ui->grouplist);
+            QListWidgetItem*item=new QListWidgetItem;
+            //设置条目对应的群聊信息id
+            item->setData(Qt::UserRole,info.toObject().value("groupid").toInt());
+            //将条目设置到userlist内
+            ui->grouplist->addItem(item);
+            //设置条目大小0代表自动铺满x轴
+            item->setSizeHint(QSize(0,36));
+            //给条目设置一个内嵌widget
+            ui->grouplist->setItemWidget(item,itemwidget);
+        }
+    }
+}
+
+void AddFriend::sendFailed()
+{
+
+}
+//全屏
+void AddFriend::FullScreen()
+{
+    if(!isMax)
+    {
+        //记录全屏前的窗口信息
+        previousscreen=saveGeometry();
+        showMaximized();
+        isMax=true;
+        ui->max->setIcon(QIcon(":/picture/remax.png"));
+    }
+    else
+    {
+        //回复全屏前的窗口大小信息
+        restoreGeometry(previousscreen);
+        isMax=false;
+        ui->max->setIcon(QIcon(":/picture/max.png"));
+    }
+}
+//全屏按钮
+void AddFriend::on_max_clicked()
+{
+    FullScreen();
+}
+
+
+//搜索按钮
+void AddFriend::on_search_clicked()
+{
+    if(!ui->searchedit->text().isEmpty())
+    {
+        //发送要搜索的信息
+        QString id=ui->searchedit->text();
+        QJsonObject data;
+        data.insert("cmd","search");
+        data.insert("accountinfo",id);
+        emit sendJson(data);
+    }
+    else
+    {
+        user_backgroundflag=NOTKEYBG;
+        group_backgroundflag=NOTKEYBG;
+        setBackGround(ui->userlist,user_backgroundflag);
+        setBackGround(ui->grouplist,group_backgroundflag);
+    }
+}
+//根据搜索状况调整背景
+void AddFriend::setBackGround(QListWidget*parentList,int flag)
+{
+    if (!parentList)
+        return;
+
+    QWidget* emptyWidget = parentList->findChild<QWidget*>("empty_tip_widget");
+
+    //有数据隐藏
+    if (flag == HAVINGRESULT)
+    {
+        if (emptyWidget)
+            emptyWidget->hide();
+        return;
+    }
+
+    // 控件不存在创建
+    if (!emptyWidget)
+    {
+        emptyWidget = new QWidget(parentList);
+        emptyWidget->setObjectName("empty_tip_widget");
+        emptyWidget->setAttribute(Qt::WA_TransparentForMouseEvents);
+
+        QLabel* iconLabel = new QLabel(emptyWidget);
+        iconLabel->setObjectName("tip_icon");
+        iconLabel->setScaledContents(true);
+        iconLabel->setFixedSize(120, 120);
+        iconLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+
+        QLabel* textLabel = new QLabel(emptyWidget);
+        textLabel->setObjectName("tip_text");
+        textLabel->setAlignment(Qt::AlignCenter);
+        textLabel->setFixedHeight(32);
+        textLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+    }
+
+    //获取内部标签
+    QLabel* iconLabel = emptyWidget->findChild<QLabel*>("tip_icon");
+    QLabel* textLabel = emptyWidget->findChild<QLabel*>("tip_text");
+    if (!iconLabel || !textLabel)
+        return;
+
+    //切换图片和文字，控件全程不销毁
+    if (flag == NOTKEYBG)
+    {
+        iconLabel->setPixmap(QPixmap(":/new/prefix1/picture/notkeyword.png"));
+        textLabel->setText("输入关键词搜索");
+    }
+    else if (flag == NOTRESULT)
+    {
+        iconLabel->setPixmap(QPixmap(":/new/prefix1/picture/notresult.png"));
+        textLabel->setText("暂无搜索结果");
+    }
+
+    // 摆放坐标
+    const int iconSize = 120;
+    const int gap = 20; // 图标底部到文字固定20px
+    int w = parentList->width();
+    int h = parentList->height();
+    //居中摆放
+    int iconX = (w - iconSize) / 2;
+    //图片+文字总高度
+    int iconY = (h - (iconSize + gap + 32)) / 2;
+    iconLabel->setGeometry(iconX, iconY, iconSize, iconSize);
+
+    int textY = iconY + iconSize + gap;
+    textLabel->setGeometry(0, textY, w, 32);
+
+    emptyWidget->setGeometry(parentList->rect());
+    emptyWidget->show();
+}
