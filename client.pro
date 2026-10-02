@@ -12,9 +12,16 @@ SOURCES += \
     addfriend.cpp \
     addfriendwidget.cpp \
     businessmanager.cpp \
+    chatbubble.cpp \
+    chatfeature.cpp \
+    chatitem.cpp \
+    chatwidget.cpp \
     dbmanager.cpp \
     emptytipwidget.cpp \
+    eventmanager.cpp \
     friendnoticeitem.cpp \
+    groupannouncement.cpp \
+    groupfeature.cpp \
     handlercmd.cpp \
     hovertip.cpp \
     itemwidget.cpp \
@@ -22,7 +29,9 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     networkmanager.cpp \
+    privatefeature.cpp \
     registeruser.cpp \
+    resizeitemlistwidget.cpp \
     userwidget.cpp
 
 HEADERS += \
@@ -30,23 +39,35 @@ HEADERS += \
     addfriend.h \
     addfriendwidget.h \
     businessmanager.h \
+    chatbubble.h \
+    chatfeature.h \
+    chatitem.h \
+    chatwidget.h \
     dbmanager.h \
     emptytipwidget.h \
+    eventmanager.h \
     friendnoticeitem.h \
+    groupannouncement.h \
+    groupfeature.h \
     handlercmd.h \
     hovertip.h \
     itemwidget.h \
     log.h \
     mainwindow.h \
     networkmanager.h \
+    privatefeature.h \
     registeruser.h \
+    resizeitemlistwidget.h \
     userwidget.h
 
 FORMS += \
     addfriend.ui \
     addfriendwidget.ui \
+    chatitem.ui \
+    chatwidget.ui \
     emptytipwidget.ui \
     friendnoticeitem.ui \
+    groupannouncement.ui \
     itemwidget.ui \
     mainwindow.ui \
     registeruser.ui \

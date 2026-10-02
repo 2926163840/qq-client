@@ -7,6 +7,11 @@ HandlerCmd::HandlerCmd(QObject *parent)
     connect(this,&HandlerCmd::sendJson,netmana,&NetworkManager::sendJson);
     //传递好友通知信息给ui
     connect(dbmana,&DBManager::return_FRIENDNOTICE_Display,this,&HandlerCmd::haveFriendNotice);
+    //传递好友通知信息给ui
+    connect(dbmana,&DBManager::return_CONVMES_Display,this,&HandlerCmd::judgeMes);
+
+
+
     //登入成功初始化通知序列
     connect(this,&HandlerCmd::sendNoticeSeed,dbmana,&DBManager::sowNoticeSeq);
     //保存登入记录
@@ -32,17 +37,83 @@ HandlerCmd::HandlerCmd(QObject *parent)
 
 
 
-    //获取用户好友通知信息
-    connect(this,&HandlerCmd::getFriendNotice,dbmana,&DBManager::getFriendNotice);
+    //好友通知拉新
+    connect(this,&HandlerCmd::getNewFriendNotice,dbmana,&DBManager::getNewFriendNotice);
+    //好友通知拉旧
+    connect(this,&HandlerCmd::getOlderFriendNotice,dbmana,&DBManager::getOlderFriendNotice);
+    //聊天记录拉新
+    connect(this,&HandlerCmd::getChatHistory_New,dbmana,&DBManager::getChatHistory_New);
+    //聊天记录拉新
+    connect(this,&HandlerCmd::getChatHistory_Older,dbmana,&DBManager::getChatHistory_Older);
+    //聊天记录重置上下界
+    connect(this,&HandlerCmd::resetChatBounds,dbmana,&DBManager::resetChatBounds);
 
 }
-//通知模式改变（获取通知条目）
+//通知模式改变（拉新通知信息）
 void HandlerCmd::NoticePatternChanged(const NoticeViewType NoticePattern)
 {
     avtiveview.NVT=NoticePattern;
     if(NoticePattern==NoticeViewType::FRIEND)
-    emit getFriendNotice(userid);
+    emit getNewFriendNotice(userid);
     else if(NoticePattern==NoticeViewType::GROUP){};
+}
+//拉旧通知信息
+void HandlerCmd::getOlderNoticeHistory()
+{
+    if(avtiveview.NVT==NoticeViewType::FRIEND)
+        emit getOlderFriendNotice(userid);
+    else if(avtiveview.NVT==NoticeViewType::GROUP){};
+}
+//焦点窗口改变获取聊天记录
+void HandlerCmd::chatWidgetChanged(const qint64 convid)
+{
+    avtiveview.focusconv=convid;
+}
+//聊天记录拉新
+void HandlerCmd::getNewChatHistory(const qint64 convid)
+{
+    //焦点改变
+    chatWidgetChanged(convid);
+    //拉新
+    emit getChatHistory_New(convid);
+}
+//拉旧聊天记录
+void HandlerCmd::getOlderChatHistory(const qint64 convid)
+{
+    //拉旧聊天记录
+    emit getChatHistory_Older(convid);
+    qDebug()<<999;
+}
+//窗口独立
+void HandlerCmd::haveIndependChatWidget(const qint64 convid)
+{
+    avtiveview.indepconv.insert(convid);
+}
+//独立窗口销毁或改变
+void HandlerCmd::removeIndependChatWidget(const qint64 convid)
+{
+    avtiveview.indepconv.remove(convid);
+    emit resetChatBounds(convid);
+}
+//判断消息应该是未读还是显示
+void HandlerCmd::judgeMes(const std::shared_ptr<QList<Mes>> &ldpni)
+{
+    QList<qint64> unreaditem;
+    for(auto it=ldpni->begin();it!=ldpni->end();it++)
+    {
+        Mes&row=*it;
+        //窗口未独立且不是焦点只提示未读
+        if(avtiveview.focusconv!=row.convid&&avtiveview.indepconv.contains(row.convid))
+        {
+            unreaditem.append(row.convid);
+            //从原容器中移除
+            ldpni->erase(it);
+        }
+    }
+    if(!unreaditem.empty())
+        emit haveUnreadMes(unreaditem);
+    //要显示的消息
+    emit haveChatMes(ldpni);
 }
 
 //登入成功获取数据回复
@@ -52,7 +123,7 @@ void HandlerCmd::handleloginsuccess(const QJsonObject&data)
     if(data.value("result")=="getuserdata_success")
     {
         //将数据发给业务层
-        getuserdata_success(data.value("friendlist").toArray(),data.value("grouplist").toArray());
+        emit getuserdata_success(data.value("friendlist").toArray(),data.value("grouplist").toArray());
         //好友会话id容器
         std::shared_ptr<QList<qint64>> convidlist=std::make_shared<QList<qint64>>();
         //取出好友会话id
@@ -244,7 +315,7 @@ void HandlerCmd::addNewNotice(const qint64 userid,const qint64 userseq,const qin
         //好友类型通知
         if(avtiveview.NVT==NoticeViewType::FRIEND&&type==1)
         {
-            emit getFriendNotice(userid);
+            emit getNewFriendNotice(userid);
         }
         break;
     case 2:

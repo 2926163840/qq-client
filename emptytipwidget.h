@@ -4,6 +4,9 @@
 #include <QWidget>
 #include<QListWidget>
 #include<QLabel>
+#include<QVBoxLayout>
+
+#include"eventmanager.h"
 
 namespace Ui {
 class EmptyTipWidget;

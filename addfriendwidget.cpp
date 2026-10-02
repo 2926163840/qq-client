@@ -9,7 +9,7 @@ AddFriendWidget::AddFriendWidget(int id,QString info,QString message,QWidget *pa
 {
     ui->setupUi(this);
     // 去掉标原生题栏
-    setWindowFlag(Qt::FramelessWindowHint,Qt::NoDropShadowWindowHint);
+    setWindowFlags(Qt::FramelessWindowHint|Qt::NoDropShadowWindowHint|Qt::WindowMinimizeButtonHint);
     //设置用户信息
     ui->userinfo->setText(info);
     ui->message->setText(message);
@@ -34,7 +34,7 @@ void AddFriendWidget::mousePressEvent(QMouseEvent *event)
     {
         m_isWindowDragging = true;
         // 记录鼠标相对于窗口左上角的偏移
-        m_windowDragStartPos = event->globalPos() - this->frameGeometry().topLeft();
+        m_windowDragStartPos = event->globalPosition().toPoint() - this->frameGeometry().topLeft();
         event->accept();
     }
     QWidget::mousePressEvent(event);
@@ -44,7 +44,7 @@ void AddFriendWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if(m_isWindowDragging && event->buttons() & Qt::LeftButton)
     {
-        this->move(event->globalPos() - m_windowDragStartPos);
+        this->move(event->globalPosition().toPoint() - m_windowDragStartPos);
         event->accept();
     }
     QWidget::mouseMoveEvent(event);

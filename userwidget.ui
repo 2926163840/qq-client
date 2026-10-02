@@ -316,13 +316,11 @@ QTreeWidget::item:!has-children {
     height:36px;
     padding-left:0px;
 }
-/* 悬浮浅灰 */
 QTreeWidget::item:!has-children:hover {
-    background-color: #f1f1f1;
+    background:transparent ;
 }
-/* 选中灰色 */
 QTreeWidget::item:!has-children:selected {
-    background-color: #e0e0e0;
+    background:transparents ;
     color:#222222;
 }
 
@@ -364,7 +362,7 @@ QTextEdit:focus {
     border: 1px solid #E0E0E0;
 }</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="6,1,240">
+  <layout class="QVBoxLayout" name="verticalLayout_17" stretch="0,0,1">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -382,6 +380,18 @@ QTextEdit:focus {
    </property>
    <item>
     <widget class="QFrame" name="titlebar">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>40</height>
+      </size>
+     </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -486,6 +496,12 @@ QTextEdit:focus {
          <iconset resource="resource.qrc">
           <normaloff>:/picture/min.png</normaloff>:/picture/min.png</iconset>
         </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
        </widget>
       </item>
       <item>
@@ -513,6 +529,12 @@ QTextEdit:focus {
          <iconset resource="resource.qrc">
           <normaloff>:/picture/max.png</normaloff>:/picture/max.png</iconset>
         </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
        </widget>
       </item>
       <item>
@@ -539,6 +561,12 @@ QTextEdit:focus {
         <property name="icon">
          <iconset resource="resource.qrc">
           <normaloff>:/picture/close.png</normaloff>:/picture/close.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -591,7 +619,7 @@ QTextEdit:focus {
       </property>
       <item>
        <widget class="QWidget" name="qqwidget" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="5,1,32,68">
+        <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,0,1">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -612,6 +640,24 @@ QTextEdit:focus {
          </property>
          <item>
           <widget class="QWidget" name="selectwidget" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>45</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>45</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <widget class="QPushButton" name="messagepattern">
             <property name="geometry">
              <rect>
@@ -699,6 +745,18 @@ QTextEdit:focus {
             <number>0</number>
            </property>
            <widget class="QWidget" name="friendpatternpage">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>300</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,1">
              <property name="spacing">
               <number>0</number>
@@ -717,7 +775,7 @@ QTextEdit:focus {
              </property>
              <item>
               <widget class="QWidget" name="widget_2" native="true">
-               <layout class="QVBoxLayout" name="verticalLayout_6" stretch="5,1,10,70">
+               <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0,0,1">
                 <property name="spacing">
                  <number>0</number>
                 </property>
@@ -735,11 +793,23 @@ QTextEdit:focus {
                 </property>
                 <item>
                  <widget class="QWidget" name="widget_5" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>300</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>300</width>
+                    <height>40</height>
+                   </size>
+                  </property>
                   <widget class="QPushButton" name="more_2">
                    <property name="geometry">
                     <rect>
-                     <x>240</x>
-                     <y>5</y>
+                     <x>250</x>
+                     <y>10</y>
                      <width>41</width>
                      <height>31</height>
                     </rect>
@@ -759,6 +829,18 @@ QTextEdit:focus {
                 </item>
                 <item>
                  <widget class="QFrame" name="frame_8">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>1</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>1</height>
+                   </size>
+                  </property>
                   <property name="frameShape">
                    <enum>QFrame::HLine</enum>
                   </property>
@@ -769,6 +851,18 @@ QTextEdit:focus {
                 </item>
                 <item>
                  <widget class="QWidget" name="switchbtn" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>300</width>
+                    <height>60</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>300</width>
+                    <height>60</height>
+                   </size>
+                  </property>
                   <layout class="QHBoxLayout" name="horizontalLayout_2">
                    <property name="spacing">
                     <number>0</number>
@@ -826,6 +920,12 @@ QTextEdit:focus {
                     </property>
                     <item>
                      <widget class="QTreeWidget" name="grouplist">
+                      <property name="selectionMode">
+                       <enum>QAbstractItemView::NoSelection</enum>
+                      </property>
+                      <property name="indentation">
+                       <number>15</number>
+                      </property>
                       <column>
                        <property name="text">
                         <string>群聊</string>
@@ -855,7 +955,10 @@ QTextEdit:focus {
                     <item>
                      <widget class="QTreeWidget" name="friendlist">
                       <property name="selectionMode">
-                       <enum>QAbstractItemView::MultiSelection</enum>
+                       <enum>QAbstractItemView::NoSelection</enum>
+                      </property>
+                      <property name="indentation">
+                       <number>15</number>
                       </property>
                       <column>
                        <property name="text">
@@ -884,6 +987,18 @@ QTextEdit:focus {
             </layout>
            </widget>
            <widget class="QWidget" name="messagepatternpage">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>300</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="10,1">
              <property name="spacing">
               <number>0</number>
@@ -902,7 +1017,19 @@ QTextEdit:focus {
              </property>
              <item>
               <widget class="QWidget" name="widget_3" native="true">
-               <layout class="QVBoxLayout" name="verticalLayout_7" stretch="5,1,80">
+               <property name="minimumSize">
+                <size>
+                 <width>300</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>300</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_7" stretch="0,0,1">
                 <property name="spacing">
                  <number>0</number>
                 </property>
@@ -920,10 +1047,22 @@ QTextEdit:focus {
                 </property>
                 <item>
                  <widget class="QWidget" name="widget_4" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>300</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>300</width>
+                    <height>40</height>
+                   </size>
+                  </property>
                   <widget class="QPushButton" name="more">
                    <property name="geometry">
                     <rect>
-                     <x>240</x>
+                     <x>250</x>
                      <y>10</y>
                      <width>41</width>
                      <height>31</height>
@@ -944,6 +1083,18 @@ QTextEdit:focus {
                 </item>
                 <item>
                  <widget class="QFrame" name="frame_10">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>1</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>1</height>
+                   </size>
+                  </property>
                   <property name="frameShape">
                    <enum>QFrame::HLine</enum>
                   </property>
@@ -975,6 +1126,18 @@ QTextEdit:focus {
             </layout>
            </widget>
            <widget class="QWidget" name="noticepatternpage">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>300</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_19">
              <property name="spacing">
               <number>0</number>
@@ -1061,6 +1224,12 @@ QTextEdit:focus {
          </item>
          <item>
           <widget class="QStackedWidget" name="chatwidget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="currentIndex">
             <number>2</number>
            </property>
@@ -1269,6 +1438,18 @@ QTextEdit:focus {
                    </property>
                    <item>
                     <widget class="QWidget" name="friendnoticepattern" native="true">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>40</height>
+                      </size>
+                     </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_7">
                       <property name="spacing">
                        <number>5</number>
@@ -1316,7 +1497,7 @@ QTextEdit:focus {
                     </widget>
                    </item>
                    <item>
-                    <widget class="QListWidget" name="friendnoticelist"/>
+                    <widget class="ResizeItemListWidget" name="friendnoticelist"/>
                    </item>
                   </layout>
                  </widget>
@@ -1381,6 +1562,18 @@ QTextEdit:focus {
                    </property>
                    <item>
                     <widget class="QWidget" name="groupnoticepattern" native="true">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>16777215</width>
+                       <height>40</height>
+                      </size>
+                     </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_8">
                       <property name="spacing">
                        <number>5</number>
@@ -1428,7 +1621,7 @@ QTextEdit:focus {
                     </widget>
                    </item>
                    <item>
-                    <widget class="QListWidget" name="groupnoticelist"/>
+                    <widget class="ResizeItemListWidget" name="groupnoticelist"/>
                    </item>
                   </layout>
                  </widget>
@@ -1448,6 +1641,13 @@ QTextEdit:focus {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ResizeItemListWidget</class>
+   <extends>QListWidget</extends>
+   <header location="global">resizeitemlistwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resource.qrc"/>
  </resources>

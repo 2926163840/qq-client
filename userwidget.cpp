@@ -10,6 +10,10 @@ UserWidget::UserWidget(QString account,QString name,QWidget *parent)
     ui->setupUi(this);
     //初始化窗口信息
     widgetInit();
+    //加载背景页以及通知页背景
+    EmptyTipWidget::SetEmptyTip(ui->backgroundpage,":/new/prefix1/picture/QQBackground.png","");
+    EmptyTipWidget::SetEmptyTip(ui->friendnoticelist,":/new/prefix1/picture/NotNotice.png","暂无通知");
+
     ui->more->move(ui->more_2->pos());
     // //开局选中消息模式
     // QTimer::singleShot(0,this,[this]{
@@ -27,10 +31,12 @@ UserWidget::UserWidget(QString account,QString name,QWidget *parent)
     groupListInit();
     //更多按钮初始化（创建加入好友群聊）
     moreButtonInit();
+    //隐藏聊天窗口模型
+    ui->userchatwidget->hide();
     //初始化接收业务信息信号
     readCmd();
     //登入成功告诉服务器可以把好友和群聊数据发过来了
-    loginSuccess();
+    emit requestData();
     //收到消息后回复给服务器
     //connect(this,&UserWidget::recvSuccess,busmana,&BusinessManager::sendJson);
 }
@@ -44,24 +50,27 @@ void UserWidget::readCmd()
 {
     //ui通知模式改变
     connect(this,&UserWidget::NoticePatternChanged,busmana,&BusinessManager::NoticePatternChanged);
+    //ui焦点聊天窗口改变获取聊天记录
+    connect(this,&UserWidget::getMes,busmana,&BusinessManager::getMes);
+    //出现独立聊天窗口
+    connect(this,&UserWidget::haveIndependChatWidget,busmana,&BusinessManager::haveIndependChatWidget);
+    //独立聊天窗口销毁
+    connect(this,&UserWidget::removeIndependChatWidget,busmana,&BusinessManager::removeIndependChatWidget);
+
+    //有好友通知
+    connect(busmana,&BusinessManager::haveFriendNotice,this,&UserWidget::RenderFriendNotice);
+    //有聊天信息
+    connect(busmana,&BusinessManager::haveChatMes,this,&UserWidget::RenderChatMes);
+    //有未读消息添加计数
+    connect(busmana,&BusinessManager::haveUnreadMes,this,&UserWidget::addUnreadCount);
+
+    void haveUnreadMes(const QList<qint64>&urcv);
 
     //用户登入数据
     //登入成功获取好友群聊列表数据
     connect(this,&UserWidget::requestData,busmana,&BusinessManager::getFriendGroupInf0);
-    //初始化用户好友群聊数据
-    connect(busmana,&BusinessManager::getuserdata_success,this,&UserWidget::UserDataInit);
-    //获取数据失败退出用户界面
-    connect(busmana,&BusinessManager::getuserdata_failed,this,&UserWidget::getUserDataFailed);
-    //好友群聊数据拉取成功获取离线消息（消息增量）
-    connect(this,&UserWidget::getUserDataSuccess,busmana,&BusinessManager::getOfflineMes);
-    //成功申请加好友
-    connect(busmana,&BusinessManager::haveFriendNotice,this,&UserWidget::RenderFriendNotice);
     //成功同意添加好友请求将好友添加到对应的分组中
-    connect(busmana,&BusinessManager::sendFriendInfo,this,[this](const qint64 friendid,const QString&friendname,const QString&friendidentity){
-        QTreeWidgetItem*item=new QTreeWidgetItem(friendlisthash.find(friendidentity).value());
-        item->setData(0,Qt::UserRole,friendid);
-        item->setText(0,friendname);
-    });
+    connect(busmana,&BusinessManager::sendFriendInfo,this,&UserWidget::addFriendItem);
     //同意或拒绝请求出错
     connect(busmana,&BusinessManager::addfriend_handlefailed,this,[this]{
         HoverTip::showTip(this,"请求超时请稍后重试······");
@@ -89,33 +98,23 @@ void UserWidget::recvMessage(const qint64 sendid,const QString&content)
     emit recvSuccess(reply);
 }
 
-//初始化用户信息
-void UserWidget::UserDataInit(const QHash<qint64,UserInfo>&friendlist,const QHash<qint64,UserInfo>&grouplist)
+//添加好友条目信息
+void UserWidget::addFriendItem(const IdentityInfo identityinfo, const QString &friendname, const QString &friendidentity)
 {
-    //初始化好友信息
-    friendListInfoInit(friendlist);
-    //初始化群聊信息
-    groupListInfoInit(grouplist);
-    //初始化数据成功
-    emit getUserDataSuccess();
+    QTreeWidgetItem*item=new QTreeWidgetItem(friendlisthash.find(friendidentity).value());
+    //好友信息条目窗口
+    ChatItem*itemwidget=new ChatItem(identityinfo,friendname);
+    //建立信号（双击创建窗口）
+    connect(itemwidget,&ChatItem::DoubleClicked,busmana,&BusinessManager::createChatWidget);
+    connect(busmana,&BusinessManager::sendChatWidgetInfo,this,&UserWidget::createChatWidget);
+    ui->friendlist->setItemWidget(item,0,itemwidget);
+    item->setSizeHint(0,itemwidget->sizeHint());
+    //将好友条目放到哈希表中
+    chatitemhash.insert(identityinfo.convid,item);
 }
-//初始化好友列表信息
-void UserWidget::friendListInfoInit(const QHash<qint64,UserInfo>&friendlist)
-{
-    //将好友信息加到列表中
-    for(const auto&it:friendlist)
-    {
-        //根据分组将好友设置到对应的主条目内
-        QTreeWidgetItem*item=new QTreeWidgetItem(friendlisthash.find(it.useridentity).value());
-        //设置条目所对应的好友会话id
-        item->setData(0,Qt::UserRole,it.convid);
-        QString curname=it.userremark=="无"?it.username:it.userremark;
-        //没备注显示用户名
-        item->setText(0,curname);
-    }
-}
+
 //初始化群聊列表信息
-void UserWidget::groupListInfoInit(const QHash<qint64,UserInfo>&grouplist)
+void UserWidget::groupListInfoInit(const QHash<qint64,FriendInfo>&grouplist)
 {
     // //遍历群聊json数组
     // for(auto info:grouplist)
@@ -139,11 +138,210 @@ void UserWidget::groupListInfoInit(const QHash<qint64,UserInfo>&grouplist)
     //     }
     // }
 }
+
+
 //创建群聊
 void UserWidget::createGroup()
 {
 
 }
+//创建聊天窗口信息(双击好友群聊条目触发)
+void UserWidget::createChatWidget(const IdentityInfo &identityinfo,const QString&friendname)
+{
+    //对应的条目不存在则创建
+    if(!messagelisthash.contains(identityinfo.convid))
+    {
+        //创建消息列表条目
+        createChatWidget_Item(identityinfo,friendname);
+
+    }
+    //聊天窗口窗口不存在则创建后切换
+    if(!chatwidgethash.contains(identityinfo.convid))
+    {
+        createChatWidget_Widget(identityinfo,friendname);
+    }
+    //存在跳转到消息模式显示窗口
+    else
+    {
+        //拿到条目内嵌窗口设为选中状态
+        ChatItem*temp=static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.find(identityinfo.convid).value()));
+        temp->setSelected(true);
+        //如果当前窗口不为双击好友对应的窗口则隐藏当前聊天窗口显示切换窗口反之显示聊天窗口
+        ChatWidget*chatwidget=chatwidgethash.find(identityinfo.convid).value();
+        //如果聊天窗口已经独立则直接顶层显示
+        if(chatwidget->getIndepend()){chatwidget->show();chatwidget->raise();}
+        //不独立但已经为焦点窗口
+        else if(curchatwidget==chatwidget) {curchatwidget->show();}
+        //如果有其他窗口在显示就隐藏显示当前的
+        else if(curchatwidget)
+        {
+            curchatwidget->hide();
+            curchatwidget=chatwidget;
+            curchatwidget->show();
+            //焦点窗口切换发出信号
+            emit getMes(MesRequest::CHATFOCUS,chatwidget->getConvid());
+        }
+        //当前无正在展示的窗口
+        else{
+            curchatwidget=chatwidget;
+            curchatwidget->show();
+            //焦点窗口切换发出信号
+            emit getMes(MesRequest::CHATFOCUS,chatwidget->getConvid());
+        }
+    }
+    //跳转到消息模式
+    ui->messagepattern->setChecked(true);
+}
+//创建聊天窗口
+void UserWidget::createChatWidget_Widget(const IdentityInfo &identityinfo,const QString&friendname)
+{
+    ChatWidget*chatwidget=ChatWidget::createChatWidget(identityinfo,friendname);
+    //拖拽窗口时独立聊天窗口
+    connect(chatwidget,&ChatWidget::draging,this,&UserWidget::ChatWidget_Draging);
+    //拖拽完成判断独立还是附着
+    connect(chatwidget,&ChatWidget::draged,this,&UserWidget::ChatWidget_Draged);
+    //独立窗口关闭
+    connect(chatwidget,&ChatWidget::closeSelf,this,[this](const qint64 convid){
+        chatwidgethash.remove(convid);
+        //独立窗口销毁
+        emit removeIndependChatWidget(convid);
+    });
+    //滚轮划到顶部（历史记录拉旧）
+    connect(ui->userchatlist->verticalScrollBar(),&QScrollBar::valueChanged,this,[this](int value){
+        //聊天框划到顶聊天记录拉旧
+        if(value<=0)
+            getMes(MesRequest::CHATMORE);
+    });
+    //将窗口加入哈希表
+    chatwidgethash.insert(identityinfo.convid,chatwidget);
+    //默认滚轮在底部
+    ui->userchatlist->verticalScrollBar()->setValue(ui->userchatlist->verticalScrollBar()->maximum());
+    //设置窗口初始位置
+    toggleChatWidget(chatwidget);
+}
+//拖拽窗口时独立聊天窗口
+void UserWidget::ChatWidget_Draging(ChatWidget *obj)
+{
+    obj->setParent(nullptr);
+    //如果是将焦点窗口独立设为背景页
+    if(curchatwidget==obj)
+    {
+        curchatwidget=nullptr;
+        ui->chatwidget->setCurrentIndex(BACKGROUND_PATTERN);
+        //窗口独立
+        emit haveIndependChatWidget(obj->getConvid());
+        //焦点消失
+        emit getMes(MesRequest::CHATFOCUS,-1);
+    }
+    //真正变成独立窗口
+    obj->setWindowFlag(Qt::Window,true);
+    //改变独立标志位
+    obj->setIndepend(true);
+    obj->show();
+}
+//拖拽完成判断独立还是附着
+void UserWidget::ChatWidget_Draged(ChatWidget *obj)
+{
+    //计算附着面积（聊天页上8分之一）
+    QPoint leftp=ui->userchatwidget->mapToGlobal(QPoint(0,0));
+    QRect adherisonrect(leftp.x(),leftp.y(),ui->userchatwidget->width(),ui->userchatwidget->height()/12);
+    //拖拽后的独立聊天窗口左上角坐标
+    QPoint objleftp=obj->frameGeometry().topLeft();
+    //当前页为背景页且窗口无正在展示的聊天窗口且独立窗口左上角坐标处于附着面积处则附着
+    if(ui->chatwidget->currentWidget()==ui->backgroundpage&&
+        curchatwidget==nullptr&&
+        adherisonrect.contains(objleftp)&&
+        isVisible()&&
+        !isMinimized())
+    {
+        //改变独立标志位
+        obj->setIndepend(false);
+        //关闭状态栏
+        obj->setTitlebarStatus(false);
+        //走切换窗口代码（重新加入布局改变焦点窗口）
+        toggleChatWidget(obj);
+        //独立窗口销毁
+        emit removeIndependChatWidget(obj->getConvid());
+        //焦点改变
+        emit getMes(MesRequest::CHATFOCUS,obj->getConvid());
+    }
+    //反之成功独立窗口
+    else{
+        //显示状态栏
+        obj->setTitlebarStatus(true);
+    }
+}
+//创建消息列表条目
+void UserWidget::createChatWidget_Item(const IdentityInfo &identityinfo, const QString &friendname)
+{
+    //消息列表条目
+    ChatItem*itemwidget=new ChatItem(identityinfo,friendname);
+    //单击判断窗口是否还存在
+    connect(itemwidget,&ChatItem::Clicked,this,[this,identityinfo,friendname](qint64 convid){
+        //不存在出现创建并切换
+        if(!chatwidgethash.contains(convid))
+            createChatWidget_Widget(identityinfo,friendname);
+        //存在切换
+        else
+            toggleChatWidget(chatwidgethash.find(convid).value());
+    });
+
+    //新建立的窗口置顶
+    QListWidgetItem *item=new QListWidgetItem;
+    item->setSizeHint(itemwidget->sizeHint());
+    ui->messagelist->insertItem(0,item);
+    ui->messagelist->setItemWidget(item,itemwidget);
+    ui->messagelist->setCurrentItem(0);    
+    //将消息条目放到哈希表中
+    messagelisthash.insert(identityinfo.convid,item);
+}
+//设置聊天窗口隐藏和显示
+void UserWidget::toggleChatWidget(ChatWidget *chatwidget)
+{
+    //选择窗口为独立窗口
+    if(chatwidget->getIndepend())
+    {
+        //顶层显示
+        chatwidget->show();
+        chatwidget->raise();
+        //返回不发送后续聊天窗口焦点改变信号
+        return;
+    }
+    qint64 convid=chatwidget->getConvid();
+    //没有加进布局里面加进去
+    if(chatwidget->parentWidget()!=ui->userchatpage)
+    {
+        ui->userchatpage->layout()->addWidget(chatwidget);
+    }
+
+    //当前窗口不为空且不为选择的窗口隐藏换成要切换的窗口
+    if(curchatwidget&&curchatwidget!=chatwidget)
+    {
+        ui->chatwidget->setCurrentIndex(CHAT_PATTERN);
+        curchatwidget->hide();
+        curchatwidget=chatwidget;
+        curchatwidget->show();
+    }
+    //当前窗口为选择窗口直接隐藏且至背景页
+    else if(curchatwidget==chatwidget)
+    {
+        curchatwidget->hide();
+        curchatwidget=nullptr;
+        ui->chatwidget->setCurrentIndex(BACKGROUND_PATTERN);
+        //无展示窗口将焦点convid变为-1
+        convid=-1;
+    }
+    //为空直接赋值显示
+    else
+    {
+        ui->chatwidget->setCurrentIndex(CHAT_PATTERN);
+        curchatwidget=chatwidget;
+        curchatwidget->show();
+    }
+    //焦点窗口切换发出信号
+    emit getMes(MesRequest::CHATFOCUS,convid);
+}
+
 //添加好友或群聊
 void UserWidget::addFriOrGro()
 {
@@ -156,11 +354,10 @@ void UserWidget::addFriOrGro()
     addmem->show();
 }
 //显示好友通知
-void UserWidget::RenderFriendNotice(const std::shared_ptr< QList<DisplayNoticeInfo>>&ldpni)
+void UserWidget::RenderFriendNotice(const std::shared_ptr<QList<DisplayNoticeInfo>>&ldpni)
 {
-
     NoticeMode MODE=NoticeMode::NONE;
-    for(auto&dpni:*ldpni)
+    for(const auto&dpni:*ldpni)
     {
         switch(dpni.status)
         {
@@ -180,15 +377,16 @@ void UserWidget::RenderFriendNotice(const std::shared_ptr< QList<DisplayNoticeIn
             MODE=NoticeMode::REFUSED;
             break;
         }
+        //存在
         if(MODE!=NoticeMode::NONE)
         {
-            //通知条目窗口
+            //条目窗口
             FriendNoticeItem*itemwidget=new FriendNoticeItem(dpni.payload.value("friendname").toString(),
-                                            dpni.payload.value("verificationmes").toString(),
-                                            dpni.sendtime,
-                                            dpni.bindid,
-                                            MODE);
-            //为通知处理着接收处理信息数据
+                                                                dpni.payload.value("verificationmes").toString(),
+                                                                dpni.sendtime,
+                                                                dpni.bindid,
+                                                                MODE);
+            //为处理着接收处理信息数据
             if(MODE==NoticeMode::PLEASEVERIFICATION)
             {
                 connect(itemwidget,&FriendNoticeItem::sendJson,busmana,&BusinessManager::noticeResult);
@@ -198,15 +396,40 @@ void UserWidget::RenderFriendNotice(const std::shared_ptr< QList<DisplayNoticeIn
             //将条目添加到好友通知列表中
             ui->friendnoticelist->addItem(item);
             //设置内嵌窗口合适大小
-            item->setSizeHint(itemwidget->sizeHint());
+            item->setSizeHint(QSize(ui->friendnoticelist->viewport()->width(),itemwidget->sizeHint().height()));
             //将窗口内嵌到条目中
             ui->friendnoticelist->setItemWidget(item,itemwidget);
             //将条目信息插入哈希表中
             friendnoticeitemhash.insert(dpni.bindid,itemwidget);
         }
     }
-    EmptyTipWidget::SetEmptyTip(ui->friendnoticelist,":/new/prefix1/picture/NotNotice.png","暂无通知");
-
+    //如果是拉旧数据获取完毕取消拉取中状态
+    if(get_NoticeMesing_Friend)get_NoticeMesing_Friend=false;
+}
+//有聊天信息（拉新）
+void UserWidget::RenderChatMes(const std::shared_ptr<QList<Mes>> &ldpni)
+{
+    for(auto&row:*ldpni)
+    {
+        //窗口存在添加消息
+        if(chatwidgethash.contains(row.convid))
+        {
+            chatwidgethash.find(row.convid).value()->addMessage(row.isself,row.friendname,row.content);
+        }
+    }
+}
+//添加未读计数
+void UserWidget::addUnreadCount(const QList<qint64> &uncv)
+{
+    for(auto&row:uncv)
+    {
+        //条目不存在跳过
+        if(!messagelisthash.contains(row))
+            continue;
+        //添加未读计数
+        ChatItem*chatitem=static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.find(row).value()));
+        chatitem->addUnreadCount();
+    }
 }
 
 //好友列表初始化
@@ -290,7 +513,7 @@ void UserWidget::moreButtonInit()
 void UserWidget::widgetInit()
 {
     // 去掉标原生题栏
-    setWindowFlag(Qt::FramelessWindowHint,Qt::NoDropShadowWindowHint);
+    setWindowFlags(Qt::FramelessWindowHint|Qt::NoDropShadowWindowHint|Qt::WindowMinimizeButtonHint);
     // 画logo
     QPixmap pix(":/new/prefix1/picture/QQICON.png");
     // 缩放至40×40，保持比例 + 平滑抗锯齿
@@ -317,16 +540,22 @@ void UserWidget::widgetInit()
     connect(ui->messagepattern,&QPushButton::toggled,this,[this](bool checked){
         if(checked){
             ui->patternstacked->setCurrentIndex(MESSAGE_PATTERN);
-            ui->chatwidget->setCurrentIndex(BACKGROUND_PATTERN);
-            EmptyTipWidget::SetEmptyTip(ui->backgroundwidget,":/new/prefix1/picture/QQBackground.png","");
+            //有在显示的聊天窗口就切会聊天页
+            if(curchatwidget)
+            {ui->chatwidget->setCurrentIndex(CHAT_PATTERN);}
+            //没有显示的聊天窗口设为背景页有就切会聊天页
+            else
+            {
+                ui->chatwidget->setCurrentIndex(BACKGROUND_PATTERN);
+            }
             emit NoticePatternChanged(NoticeViewType::NONE);
         }
+
     });
     connect(ui->friendpattern,&QPushButton::toggled,this,[this](bool checked){
         if(checked){
             ui->patternstacked->setCurrentIndex(FRIEND_PATTERN);
             ui->chatwidget->setCurrentIndex(BACKGROUND_PATTERN);
-            EmptyTipWidget::SetEmptyTip(ui->backgroundwidget,":/new/prefix1/picture/QQBackground.png","");
             //默认好友选项选中
             ui->userfriend->setChecked(true);
             emit NoticePatternChanged(NoticeViewType::NONE);
@@ -336,7 +565,7 @@ void UserWidget::widgetInit()
         if(checked){
             //默认选中好友通知窗口
             ui->friendnotice->setChecked(true);
-            ui->patternstacked->setCurrentIndex(FRIEND_NOTICE_PATTERN);
+            ui->patternstacked->setCurrentIndex(NOTICE_PATTERN);
             ui->chatwidget->setCurrentIndex(FRIEND_NOTICE_PATTERN);
             emit NoticePatternChanged(NoticeViewType::FRIEND);
         }
@@ -350,12 +579,33 @@ void UserWidget::widgetInit()
         ui->chatwidget->setCurrentIndex(GROUP_NOTICE_PATTERN);
         emit NoticePatternChanged(NoticeViewType::GROUP);
     });
+    //通知信息拉到底（通知拉旧拉旧）
+    connect(ui->friendnoticelist->verticalScrollBar(),&QScrollBar::valueChanged,this,[this](int value){
+        //滑到底部获取更多通知信息
+        if(value==ui->friendnoticelist->verticalScrollBar()->maximum()&&!get_NoticeMesing_Friend)
+        {
+            //获取中
+            get_NoticeMesing_Friend=true;
+            getMes(MesRequest::NOTICEMORE);
+        }
+    });
+    //通知信息拉到底（通知拉旧拉旧）
+    connect(ui->groupnoticelist->verticalScrollBar(),&QScrollBar::valueChanged,this,[this](int value){
+        //滑到底部获取更多通知信息
+        if(value==ui->groupnoticelist->verticalScrollBar()->maximum()&&!get_NoticeMesing_Friend)
+        {
+            //获取中
+            get_NoticeMesing_Friend=true;
+            getMes(MesRequest::NOTICEMORE);
+        }
+    });
     //默认打开是消息模式
     ui->messagepattern->setChecked(true);
     //信息模式页
     ui->patternstacked->setCurrentIndex(MESSAGE_PATTERN);
     //背景页
     ui->chatwidget->setCurrentIndex(BACKGROUND_PATTERN);
+
 
     //隐藏friendandgroupstacked各页QTreeWidget表头
     ui->friendlist->header()->hide();
@@ -390,7 +640,7 @@ void UserWidget::mousePressEvent(QMouseEvent *event)
     {
         m_isWindowDragging = true;
         // 记录鼠标相对于窗口左上角的偏移
-        m_windowDragStartPos = event->globalPos() - this->frameGeometry().topLeft();
+        m_windowDragStartPos = event->globalPosition().toPoint() - this->frameGeometry().topLeft();
         event->accept();
     }
     QWidget::mousePressEvent(event);
@@ -398,9 +648,9 @@ void UserWidget::mousePressEvent(QMouseEvent *event)
 //移动拖拽
 void UserWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if(m_isWindowDragging && event->buttons() & Qt::LeftButton)
+    if(m_isWindowDragging && event->buttons() && Qt::LeftButton)
     {
-        this->move(event->globalPos() - m_windowDragStartPos);
+        this->move(event->globalPosition().toPoint() - m_windowDragStartPos);
         event->accept();
     }
     QWidget::mouseMoveEvent(event);
@@ -431,6 +681,7 @@ void UserWidget::FullScreen()
     {
         //记录全屏前的窗口信息
         previousscreen=saveGeometry();
+
         showMaximized();
         isMax=true;
         ui->max->setIcon(QIcon(":/picture/remax.png"));
@@ -447,11 +698,6 @@ void UserWidget::FullScreen()
 void UserWidget::on_max_clicked()
 {
     FullScreen();
-}
-//成功登入准备拉取好友群聊列表数据
-void UserWidget::loginSuccess()
-{
-    emit requestData();
 }
 
 //关闭按钮

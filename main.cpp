@@ -51,7 +51,8 @@ int main(int argc, char *argv[])
         netthread->wait(3000);
         dbthread->quit();
         dbthread->wait(3000);
-        //释放玩资源后再关闭界面
+        //释放玩资源后再关闭界面(先让顶层可见窗口变为1在close才会退出事件循环)
+        w->show();
         w->close();
     });
     //登入成功后由用户界面接管线程生命
@@ -67,7 +68,9 @@ int main(int argc, char *argv[])
             QMetaObject::invokeMethod(dbmana,&DBManager::DBClose,Qt::BlockingQueuedConnection);
             dbthread->quit();
             dbthread->wait(3000);
+            temp->show();
             temp->close();
+            delete temp;
         });
         w->close();
     });

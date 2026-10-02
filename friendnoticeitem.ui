@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
-    <height>96</height>
+    <width>344</width>
+    <height>89</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -262,7 +262,20 @@ QComboBox QLineEdit
         <number>0</number>
        </property>
        <item>
-        <widget class="QComboBox" name="select"/>
+        <widget class="QComboBox" name="select">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -282,6 +295,18 @@ QComboBox QLineEdit
        </property>
        <item>
         <widget class="QLabel" name="selected">
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>30</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <pointsize>8</pointsize>

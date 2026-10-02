@@ -12,8 +12,11 @@
 //通知视图类型
 enum class NoticeViewType{NONE,FRIEND,GROUP};
 
-//通知状态              //等待验证            请验证              已同意 已拒绝
+//通知状态                   //等待验证            请验证              已同意 已拒绝
 enum class NoticeMode{NONE,PENDINGVERIFICATION,PLEASEVERIFICATION,AGREED,REFUSED};
+
+//获取信息的类型        焦点改变拉新 滚轮上限拉旧 拉旧
+enum class MesRequest{CHATFOCUS,CHATMORE,NOTICEMORE};
 
 //活跃视图结构体
 struct ActiveView
@@ -32,14 +35,30 @@ struct LoginHistory{
     bool historyrem_pwd;
 };
 
-//用户信息
-struct UserInfo{
-    QString useraccount;
-    QString username;
-    QString userremark;
-    QString useridentity;
+//会话身份
+struct IdentityInfo{
+    QString identity;  //会话身份（群聊or好友）
     qint64 convid;
 };
+
+//用户好友信息
+struct FriendInfo{
+    QString friendaccount;
+    QString friendname;
+    QString friendremark;
+    QString friendidentity; //好友身份
+    IdentityInfo friendidentityinfo;
+};
+
+//用户群聊信息
+struct GroupInfo{
+    QString groupaccount;
+    QString groupname;
+    QString groupremark;
+    QString useridentity;//群身份
+    IdentityInfo identityinfo;
+};
+
 //会话信息
 struct ConvInfo{
     qint64 convseq;//连续游标
@@ -74,6 +93,7 @@ struct DisplayNoticeInfo{
     qint8 status;
     DisplayNoticeInfo(QString pl,qint64 uid,qint64 bid,qint8 sendtm,qint8 st)
     {
+        //将json字符串转换成json数据
         QByteArray pl_by=pl.toUtf8();
         payload=QJsonDocument::fromJson(pl_by).object();
         userid=uid;
@@ -91,6 +111,8 @@ struct Mes
     qint64 convid;
     qint64 convseq;
     qint64 sendid;
+    bool isself=false;
+    QString friendname;
 };
 //通知结构体
 struct Notice

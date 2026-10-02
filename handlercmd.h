@@ -14,8 +14,26 @@ class HandlerCmd : public QObject
     Q_OBJECT
 public:
     explicit HandlerCmd(QObject *parent = nullptr);
-    //通知模式改变
+    //通知模式改变(通知拉新)
     void NoticePatternChanged(const NoticeViewType NoticePattern);
+    //拉旧通知
+    void getOlderNoticeHistory();
+
+    //选中窗口改变
+    void chatWidgetChanged(const qint64 convid);
+    //聊天记录拉新
+    void getNewChatHistory(const qint64 convid);
+    //聊天记录拉旧
+    void getOlderChatHistory(const qint64 convid);
+    //窗口独立
+    void haveIndependChatWidget(const qint64 convid);
+    //独立窗口销毁或改变
+    void removeIndependChatWidget(const qint64 convid);
+
+    //判断消息是否显示
+    void judgeMes(const std::shared_ptr<QList<Mes>>&ldpni);
+
+
     //处理登入请求
     void handleLogin(const QString&account,const QString&password);
     //处理注册请求
@@ -101,12 +119,7 @@ signals:
     void searchFailed();
     //搜索成功将数据发给业务层
     void snedSearchInfo(const QList<SearchInfo>&friendlist,const QList<SearchInfo>&grouplist);
-    //有好友通知
-    void haveFriendNotice(const std::shared_ptr< QList<DisplayNoticeInfo>>&ldpni);
-    //有群通知
-    void haveGroupNotice(QList<DisplayNoticeInfo> ldpni);
-    //获取用户好友通知信息
-    void getFriendNotice(const qint64 userid);
+
     //申请添加好友成功
     void addFriendReuqestSuccess();
     //申请添加好友失败
@@ -123,6 +136,29 @@ signals:
     void FriendNoticeStatusChanged(const qint64 bindid,const NoticeMode status);
     //同意或拒绝好友请求出错
     void addfriend_handlefailed();
+
+
+
+
+    //拉新聊天记录
+    void getChatHistory_New(const qint64 convid);
+    //拉旧聊天记录
+    void getChatHistory_Older(const qint64 convid);
+    //有聊天消息
+    void haveChatMes(const std::shared_ptr<QList<Mes>>&ldpni);
+    //有未读消息添加计数
+    void haveUnreadMes(const QList<qint64>&urcv);
+    //独立出口销毁重置上下界
+    void resetChatBounds(const qint64 convid);
+
+    //拉新好友通知信息
+    void getNewFriendNotice(const qint64 userid);
+    //拉旧好友通知信息
+    void getOlderFriendNotice(const qint64 userid);
+    //有好友通知
+    void haveFriendNotice(const std::shared_ptr<QList<DisplayNoticeInfo>>&ldpni);
+    //有群通知
+    void haveGroupNotice(QList<DisplayNoticeInfo> ldpni);
 
 private:
     //网络层全局单例

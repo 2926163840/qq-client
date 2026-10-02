@@ -46,6 +46,14 @@ public:
     //成功添加好友
     void NewFriendInfo(const qint64 friendid,const qint64 convid,const QString&friendaccount,const QString&friendname,
                        const QString&friendremark,const QString&friendidentity);
+    //创建聊天窗口
+    void createChatWidget(const IdentityInfo&identityinfo);
+
+    //获取信息
+    void getMes(const MesRequest type,const qint64 convid);
+
+    //判断聊天消息是谁发送的
+    void chatMesOwern(const std::shared_ptr<QList<Mes>>&ldpni);
 
 
 signals:
@@ -73,10 +81,11 @@ signals:
     void user_accountnoexists();
     //登入成功拉取好友群聊列表信息
     void getFriendGroupInf0();
-    //获取用户好友群聊数据成功
-    void getuserdata_success(const QHash<qint64,UserInfo>&friendlist,const QHash<qint64,UserInfo>&grouplist);
+
     //获取数据失败
     void getuserdata_failed();
+    //获取数据成功
+    void getuserdata_success();
     //传递登入信息
     void sendLoginInfo(const QString&account,const QString&pwd,bool auto_login,bool rem_pwd,qint64 login_time);
     //获取会话信息
@@ -91,8 +100,6 @@ signals:
     void searchFailed();
     //请求添加好友
     void requestAddFriend(const qint64 userid,const QString&verificationmes,const QString&remark,const QString&identity);
-    //有好友通知
-    void haveFriendNotice(const std::shared_ptr< QList<DisplayNoticeInfo>>&ldpni);
     //申请添加好友成功
     void addFriendReuqestSuccess();
     //申请添加好友失败
@@ -104,9 +111,26 @@ signals:
     //同意或拒绝好友请求出错
     void addfriend_handlefailed();
     //成功添加好友发送好友信息给ui渲染
-    void sendFriendInfo(const qint64 friendid,const QString&friendname,const QString&friendidentity);
+    void sendFriendInfo(const IdentityInfo identityinfo,const QString&friendname,const QString&friendidentity);
     //接收好友通知处理结果
     void noticeResult(const QString&result,const qint64 requestkey);
+
+
+    //窗口独立
+    void haveIndependChatWidget(const qint64 convid);
+    //独立窗口销毁或改变
+    void removeIndependChatWidget(const qint64 convid);
+
+    //有聊天消息
+    void haveChatMes(const std::shared_ptr<QList<Mes>>&ldpni);
+    //有未读消息添加计数
+    void haveUnreadMes(const QList<qint64>&urcv);
+    //有好友通知
+    void haveFriendNotice(const std::shared_ptr<QList<DisplayNoticeInfo>>&ldpni);
+
+
+    //发送好友窗口信息
+    void sendChatWidgetInfo(const IdentityInfo&identity,const QString&friendname);
 
 private:
     // //获取网络全局单列
@@ -118,9 +142,9 @@ private:
     //登入历史结构体
     QHash<QString,LoginHistory> loginhistory; //key==account
     //用户好友信息哈希表
-    QHash<qint64,UserInfo>userinfohash; //key=friendid
+    QHash<qint64,FriendInfo>userinfohash; //key=convid
     //用户群聊信息哈希表
-    QHash<qint64,UserInfo>groupinfohash;//key=groupid
+    QHash<qint64,FriendInfo>groupinfohash;//key=convid
     //登入成功标志位
     bool loginsuccessflag=false;
     //用户id

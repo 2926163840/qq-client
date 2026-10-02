@@ -8,10 +8,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //关掉原生标题栏
-    setWindowFlag(Qt::FramelessWindowHint,Qt::NoDropShadowWindowHint);
+    //关掉原生标题栏                         关闭退出事件循环               窗口可最小化
+    setWindowFlags(Qt::FramelessWindowHint|Qt::NoDropShadowWindowHint|Qt::WindowMinimizeButtonHint);
     //开启关闭自销毁
     setAttribute(Qt::WA_DeleteOnClose);
+    setAttribute(Qt::WA_QuitOnClose,true);
     //画qq图标
     paintQQ();
     setWindowTitle("QQ");
@@ -107,7 +108,7 @@ void MainWindow::userLoginSuccess(const QString&account,const QString&name)
     //开启关闭自销毁
     userwidget->setAttribute(Qt::WA_DeleteOnClose);
     //数据初始化成功关闭登入界面将登入时间记录到sqllite中
-    connect(userwidget,&UserWidget::getUserDataSuccess,this,[this,userwidget]{
+    connect(busmana,&BusinessManager::getuserdata_success,this,[this,userwidget]{
         //传递用户界面给主函数(用户界面接手线程资源)
         emit sendUserWidget(userwidget);
         //传递登入信息给业务层
@@ -122,11 +123,9 @@ void MainWindow::userLoginSuccess(const QString&account,const QString&name)
         qint64 curtime=now.toMSecsSinceEpoch();
         //传递登入信息
         emit sendLoginInfo(useraccount,userpassword,auto_login,rememberpwd,curtime);
-        //直接关闭登入界面
-        this->close();
     });
     //数据初始化失败回退至登入界面并且关闭用户界面
-    connect(userwidget,&UserWidget::getUserDataFailed,[this,userwidget]{
+    connect(busmana,&BusinessManager::getuserdata_failed,[this,userwidget]{
         this->show();
         userwidget->close();
         HoverTip::showTip(this,"请求错误请稍后重试······");
@@ -146,7 +145,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     {
         m_isWindowDragging = true;
         // 记录鼠标相对于窗口左上角的偏移
-        m_windowDragStartPos = event->globalPos() - this->frameGeometry().topLeft();
+        m_windowDragStartPos = event->globalPosition().toPoint() - this->frameGeometry().topLeft();
         event->accept();
     }
     QWidget::mousePressEvent(event);
@@ -157,7 +156,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if(m_isWindowDragging && event->buttons() & Qt::LeftButton)
     {
-        this->move(event->globalPos() - m_windowDragStartPos);
+        this->move(event->globalPosition().toPoint() - m_windowDragStartPos);
         event->accept();
     }
     QWidget::mouseMoveEvent(event);

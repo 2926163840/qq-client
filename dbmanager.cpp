@@ -246,7 +246,7 @@ void DBManager::hasnextconvseq(const qint64 convid)
     }
     qint64 lastconvseq=convinfohash.find(convid).value().convseq;
     //获取所有序列大于该会话最大连续游标的信息
-    sql.prepare("select lastconvseq from messagetable where convid=? AND convseq>?");
+    sql.prepare("select convseq from messagetable where convid=? AND convseq>?");
     sql.bindValue(0,convid);
     sql.bindValue(1,lastconvseq);
     sql.exec();
@@ -254,7 +254,7 @@ void DBManager::hasnextconvseq(const qint64 convid)
     while(sql.next())
     {
         //游标+1推进
-        if(++lastconvseq==sql.value("lastconvseq").toLongLong())
+        if(++lastconvseq==sql.value("convseq").toLongLong())
         {
             convinfohash.find(convid).value().convseq=lastconvseq;
         }
@@ -357,29 +357,24 @@ bool DBManager::hasnextsyncseq(const qint64 userid)
     return next;
 }
 //获取用户好友通知信息
-void DBManager::getFriendNotice(const qint64 userid)
+void DBManager::getNewFriendNotice(const qint64 userid)
 {
     QSqlQuery sql(db);
-    std::shared_ptr< QList<DisplayNoticeInfo>> ldpni=std::make_shared<QList<DisplayNoticeInfo>>();
+    std::shared_ptr<QList<DisplayNoticeInfo>> ldpni=std::make_shared<QList<DisplayNoticeInfo>>();
     qint64 noticelwbdseq=noticeif.noticelwbdseq;
     qint64 noticeupbdseq=noticeif.noticeupbdseq;
-    //上界为-1说明为第一次打开好友通知界面获取前20条通知
-    if(noticeupbdseq==-1)
-    {
-        sql.prepare("select userid,userseq,bindid,status,payload,sendtime from noticetable where userid=? AND type=? ORDER BY userseq LIMIT 20");
-        sql.bindValue(0,userid);
-        sql.bindValue(1,1);
-        sql.exec();
-    }
-    //反之获取期间的所有新通知(所有大于上界序列的数据)
-    else
-    {
-        sql.prepare("select userid,userseq,bindid,status,payload,sendtime from noticetable where userid=? AND type=? AND userseq>? ORDER BY userseq");
-        sql.bindValue(0,userid);
-        sql.bindValue(1,1);
-        sql.bindValue(2,noticeupbdseq);
-        sql.exec();
-    }
+    QString sql_str=noticeupbdseq==-1?
+                          //上界为-1说明为第一次打开好友通知界面获取前20条通知
+                          "select userid,userseq,bindid,status,payload,sendtime from noticetable where userid=? AND type=? ORDER BY userseq LIMIT 20":
+                          //反之获取期间的所有新通知(所有大于上界序列的数据)
+                          "select userid,userseq,bindid,status,payload,sendtime from noticetable where userid=? AND type=? AND userseq>? ORDER BY userseq";
+    sql.prepare(sql_str);
+    sql.bindValue(0,userid);
+    sql.bindValue(1,1);
+    if(noticeupbdseq!=-1)
+    {sql.bindValue(2,noticeupbdseq);}
+    sql.exec();
+
     //获取通知数据
     while(sql.next())
     {
@@ -391,23 +386,130 @@ void DBManager::getFriendNotice(const qint64 userid)
         ldpni->emplace_back(payload,userid,bindid,sendtime,status);
         //更新上界序列
         if(noticeupbdseq<sql.value("userseq").toLongLong())
-        {
             noticeupbdseq=sql.value("userseq").toLongLong();
-        }
         //更新下界序列
         if(noticelwbdseq>sql.value("userseq").toLongLong()&&noticelwbdseq!=-1)
-        {
             noticelwbdseq=sql.value("userseq").toLongLong();
-        }
         //第一条通知上界和下界一样
         else
-        {
             noticelwbdseq=sql.value("userseq").toLongLong();
-        }
     }
     noticeif.noticelwbdseq=noticelwbdseq;
     noticeif.noticeupbdseq=noticeupbdseq;
     emit return_FRIENDNOTICE_Display(ldpni);
+}
+//好友通知拉旧
+void DBManager::getOlderFriendNotice(const qint64 userid)
+{
+    //下界小于等于1表示到底了
+    if(noticeif.noticelwbdseq<=1)
+        return;
+    //获取后20条消息
+    QSqlQuery sql(db);
+    std::shared_ptr<QList<DisplayNoticeInfo>>ldpni=std::make_shared<QList<DisplayNoticeInfo>>();
+    QString sql_str="select userid,userseq,bindid,status,payload,sendtime from noticetable where userid=? AND type=? AND userseq<? ORDER BY userseq DESC LIMIT 20";
+    sql.bindValue(0,userid);
+    sql.bindValue(1,1);
+    sql.bindValue(2,noticeif.noticelwbdseq);
+    sql.exec();
+    while(sql.next())
+    {
+        qint64 userid=sql.value("useid").toLongLong();
+        qint64 userseq=sql.value("userseq").toLongLong();
+        qint64 bindid=sql.value("bindid").toLongLong();
+        qint8 status=sql.value("status").toInt();
+        QString payload=sql.value("payload").toString();
+        qint64 sendtime=sql.value("sendtime").toLongLong();
+        //更新下界序列
+        if(noticeif.noticelwbdseq>userseq)
+            noticeif.noticelwbdseq=userseq;
+        ldpni->emplace_back(payload,userid,bindid,sendtime,status);
+    }
+    //传数据给处理层
+    emit return_FRIENDNOTICE_Display(ldpni);
+}
+//聊天记录拉新
+void DBManager::getChatHistory_New(const qint64 convid)
+{
+    //没有此会话
+    if(!convinfohash.contains(convid))
+        return;
+    ConvInfo&convinfo=convinfohash.find(convid).value();
+    QSqlQuery sql(db);
+    std::shared_ptr< QList<Mes>> ldpni=std::make_shared<QList<Mes>>();
+    QString sql_str=convinfo.curupbdseq==-1?
+                          //上界为-1说明为第一次打开聊天窗口界面获取前20条通知
+                          "select convid,convseq,sendid,content,sendtime from messagetable where convid=? ORDER BY convseq LIMIT 20":
+                          //反之焦点回转获取期间的所有新消息(所有大于上界序列的数据)
+                          "select convid,convseq,sendid,content,sendtime from messagetable where convid=? AND convseq>? ORDER BY convseq";
+    sql.prepare(sql_str);
+    sql.bindValue(0,convid);
+    if(convinfo.curupbdseq!=-1)
+    {sql.bindValue(1,convinfo.curupbdseq);}
+    sql.exec();
+
+    //获取消息数据
+    while(sql.next())
+    {
+        qint64 convid=sql.value("convid").toLongLong();
+        qint64 convseq=sql.value("convseq").toLongLong();
+        qint8 sendid=sql.value("sendid").toInt();
+        QString content=sql.value("content").toString();
+        qint64 sendtime=sql.value("sendtime").toLongLong();
+        ldpni->emplace_back(content,sendtime,convid,convseq,sendid);
+        //更新上界序列
+        if(convinfo.curupbdseq<convseq)
+            convinfo.curupbdseq=sql.value("convseq").toLongLong();
+        //更新下界序列
+        if(convinfo.convlwbdseq>convseq&&convinfo.convlwbdseq!=-1)
+            convinfo.convlwbdseq=sql.value("convseq").toLongLong();
+        //第一条通消息上界和下界一样
+        else
+            convinfo.convlwbdseq=convseq;
+    }
+    emit return_CONVMES_Display(ldpni);
+}
+//聊天记录拉旧
+void DBManager::getChatHistory_Older(const qint64 convid)
+{
+    //没有此会话
+    if(!convinfohash.contains(convid))
+        return;
+    ConvInfo&convinfo=convinfohash.find(convid).value();
+    //下界小于等于1表示到底了
+    if(convinfo.convlwbdseq<=1)
+        return;
+    //获取后20条消息
+    QSqlQuery sql(db);
+    std::shared_ptr<QList<Mes>>ldpni=std::make_shared<QList<Mes>>();
+    QString sql_str="select convid,convseq,sendid,content,sendtime from messagetable where convid=? AND convseq<? ORDER BY convseq DESC LIMIT 20";
+    sql.bindValue(0,convid);
+    sql.bindValue(1,convinfo.convlwbdseq);
+    sql.exec();
+    while(sql.next())
+    {
+        qint64 convid=sql.value("convid").toLongLong();
+        qint64 convseq=sql.value("convseq").toLongLong();
+        qint8 sendid=sql.value("sendid").toInt();
+        QString content=sql.value("content").toString();
+        qint64 sendtime=sql.value("sendtime").toLongLong();
+        ldpni->emplace_back(content,sendtime,convid,convseq,sendid);
+        //更新下界序列
+        if(convinfo.convlwbdseq>convseq)
+            convinfo.convlwbdseq=convseq;
+    }
+    //传数据给
+    emit return_CONVMES_Display(ldpni);
+}
+//重置聊天窗口上下界
+void DBManager::resetChatBounds(const qint64 convid)
+{
+    if(convinfohash.contains(convid))
+    {
+        auto it=convinfohash.find(convid);
+        it->convlwbdseq=-1;
+        it->curupbdseq=-1;
+    }
 }
 
 //初始化数据库
@@ -453,6 +555,7 @@ void DBManager::DBInit()
         lg()(LogError,LogSCREEN,"表messagetable创建失败:"+sql.lastError().text());
         exit(2);
     }
+    //会话序列唯一索引
     if(!sql.exec("create INDEX IF NOT EXISTS idx_conv ON messagetable(convid,convseq);"))
     {
         lg()(LogError,LogSCREEN,"表messagetable索引创建失败:"+sql.lastError().text());

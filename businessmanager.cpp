@@ -17,6 +17,20 @@ BusinessManager::BusinessManager(QObject *parent)
     connect(netmana,&NetworkManager::recvJson,this,&BusinessManager::doJson);
     //ui通知模式改变
     connect(this,&BusinessManager::NoticePatternChanged,&hc,&HandlerCmd::NoticePatternChanged);
+
+    //窗口独立
+    connect(this,&BusinessManager::haveIndependChatWidget,&hc,&HandlerCmd::haveIndependChatWidget);
+    //独立窗口销毁或改变
+    connect(this,&BusinessManager::removeIndependChatWidget,&hc,&HandlerCmd::removeIndependChatWidget);
+
+    //有好友通知
+    connect(&hc,&HandlerCmd::haveFriendNotice,this,&BusinessManager::haveFriendNotice);
+    //有聊天消息
+    connect(&hc,&HandlerCmd::haveChatMes,this,&BusinessManager::chatMesOwern);
+    //有未读的聊天信息
+    connect(&hc,&HandlerCmd::haveUnreadMes,this,&BusinessManager::haveUnreadMes);
+
+
     //注册
     //账号已存在
     connect(&hc,&HandlerCmd::useraccount_exists,this,&BusinessManager::useraccount_exists);
@@ -64,8 +78,6 @@ BusinessManager::BusinessManager(QObject *parent)
     //添加好友
     //添加好友请求
     connect(this,&BusinessManager::requestAddFriend,&hc,&HandlerCmd::requestAddFriend);
-    //有好友通知
-    connect(&hc,&HandlerCmd::haveFriendNotice,this,&BusinessManager::haveFriendNotice);
     //通知处理结果
     connect(this,&BusinessManager::noticeResult,&hc,&HandlerCmd::noticeResult);
     //申请添加好友请求失败
@@ -206,15 +218,16 @@ void BusinessManager::login_success(const qint64 id, const QString&username)
     userid=id;
     emit login_success_data(username);
 }
-//保存用户列表信息
+//保存和发送用户列表信息
 void BusinessManager::saveUserListData(const QJsonArray&friendlist,const QJsonArray&grouplist)
 {
     //保存用户好友列表信息
     saveFriendListData(friendlist);
     //保存用户群聊列表信息
     saveGroupListData(grouplist);
-    //将数据发给ui显示
-    emit getuserdata_success(userinfohash,groupinfohash);
+    //回去完成开始回去离线消息
+    getOfflineMes();
+    emit getuserdata_success();
 }
 //保存用户好友列表信息
 void BusinessManager::saveFriendListData(const QJsonArray&friendlist)
@@ -229,11 +242,16 @@ void BusinessManager::saveFriendListData(const QJsonArray&friendlist)
         QString friendname=info.value("friendname").toString();
         QString friendremark=info.value("friendremark").toString();
         QString friendidentity=info.value("friendidentity").toString();
-        UserInfo userinfo(friendaccount,friendname,friendremark,friendidentity,convid);
-        userinfohash.insert(friendid,userinfo);
+
+        QString curname=friendremark=="无"?friendname:friendremark;
+        IdentityInfo identityinfo("Friend",convid);
+        FriendInfo userinfo(friendaccount,friendname,friendremark,friendidentity,identityinfo);
+        userinfohash.insert(convid,userinfo);
+        //发送给ui显示
+        emit sendFriendInfo(identityinfo,curname,friendidentity);
     }
 }
-//保存用户群聊列表信息
+//保存和发送用户群聊列表信息
 void BusinessManager::saveGroupListData(const QJsonArray &grouplist)
 {
 
@@ -245,7 +263,7 @@ void BusinessManager::getOfflineMes()
     std::shared_ptr<QList<qint64>> userconv=std::make_shared<QList<qint64>>();
     for(auto&conv:userinfohash)
     {
-        userconv->append(conv.convid);
+        userconv->append(conv.friendidentityinfo.convid);
     }
     //将会话id发给处理层获取数据
     if(!userconv->isEmpty())
@@ -256,15 +274,76 @@ void BusinessManager::getOfflineMes()
     emit getNoticeInfo(userid);
 }
 
-//成功同意好友添加请求
+//新的好友信息
 void BusinessManager::NewFriendInfo(const qint64 friendid,const qint64 convid,const QString&friendaccount,const QString&friendname,
                                     const QString&friendremark,const QString&friendidentity)
 {
+    //会话身份
+    IdentityInfo identityinfo("Friend",convid);
     //保存好友信息
-    UserInfo userinfo(friendaccount,friendname,friendremark,friendidentity,convid);
-    userinfohash.insert(friendid,userinfo);
+    FriendInfo friendinfo(friendaccount,friendname,friendremark,friendidentity,identityinfo);
+    userinfohash.insert(friendid,friendinfo);
     //将好友名和分组发给ui
     QString curname=friendremark=="无"?friendname:friendremark;
-    emit sendFriendInfo(friendid,curname,friendidentity);
+    emit sendFriendInfo(identityinfo,curname,friendidentity);
+}
+//创建聊天窗口
+void BusinessManager::createChatWidget(const IdentityInfo &identityinfo)
+{
+    const auto&it=userinfohash.find(identityinfo.convid);
+    if(it!=userinfohash.end())
+    {
+        QString curname=it->friendremark=="无"?it->friendname:it->friendremark;
+        emit sendChatWidgetInfo(it->friendidentityinfo,curname);
+    }
+}
+
+//获取信息（好友聊天记录或通知）
+void BusinessManager::getMes(const MesRequest type, const qint64 convid)
+{
+    switch(type)
+    {
+        //焦点窗口改变
+    case MesRequest::CHATFOCUS:
+        //焦点窗口消失只改变焦点
+        if(convid==-1)
+            hc.chatWidgetChanged(convid);
+        //反之获取聊天记录
+        else hc.getNewChatHistory(convid);
+        break;
+        //获取更多聊天记录
+    case MesRequest::CHATMORE:
+        hc.getOlderChatHistory(convid);
+        break;//获取更多通知
+    case MesRequest::NOTICEMORE:
+        hc.getOlderNoticeHistory();
+        break;
+    }
+}
+//判断消息的发送者
+void BusinessManager::chatMesOwern(const std::shared_ptr<QList<Mes>> &ldpni)
+{
+    for(auto it=ldpni->begin();it!=ldpni->end();it++)
+    {
+        Mes&row=*it;
+        if(userid==row.sendid)
+        {
+            row.isself=true;
+        }
+        else
+        {
+            FriendInfo&friendinfo=userinfohash.find(row.convid).value();
+            QString curname=friendinfo.friendremark="无"?friendinfo.friendname:friendinfo.friendremark;
+            row.friendname=curname;
+            row.isself=false;
+        }
+        //好友不存在剔除消息r
+        if(!userinfohash.contains(row.convid))
+        {
+            ldpni->erase(it);
+            continue;
+        }
+    }
+    emit haveChatMes(ldpni);
 }
 

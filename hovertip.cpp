@@ -4,7 +4,8 @@
 HoverTip::HoverTip(QWidget *parent)
     :QLabel(parent)
 {
-    setAttribute(Qt::WA_DeleteOnClose,Qt::WA_TranslucentBackground); // 开启自动销毁
+    setAttribute(Qt::WA_DeleteOnClose,true); // 开启自动销毁
+    setAttribute(Qt::WA_TranslucentBackground);
     setStyleSheet(R"(
         QLabel{
             color:#000000;

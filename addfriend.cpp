@@ -7,7 +7,7 @@ AddFriend::AddFriend(QWidget *parent)
 {
     ui->setupUi(this);
     // 去掉标原生题栏
-    setWindowFlag(Qt::FramelessWindowHint,Qt::NoDropShadowWindowHint);
+    setWindowFlags(Qt::FramelessWindowHint|Qt::NoDropShadowWindowHint|Qt::WindowMinimizeButtonHint);
     //延迟设置初始背景
     QTimer::singleShot(0,this,[this]{
         //要手动切换一下不然第二页一开始没有展示默认不会初始化位置不对
@@ -50,7 +50,7 @@ void AddFriend::mousePressEvent(QMouseEvent *event)
     {
         m_isWindowDragging = true;
         // 记录鼠标相对于窗口左上角的偏移
-        m_windowDragStartPos = event->globalPos() - this->frameGeometry().topLeft();
+        m_windowDragStartPos = event->globalPosition().toPoint() - this->frameGeometry().topLeft();
         event->accept();
     }
     QWidget::mousePressEvent(event);
@@ -60,7 +60,7 @@ void AddFriend::mouseMoveEvent(QMouseEvent *event)
 {
     if(m_isWindowDragging && event->buttons() & Qt::LeftButton)
     {
-        this->move(event->globalPos() - m_windowDragStartPos);
+        this->move(event->globalPosition().toPoint() - m_windowDragStartPos);
         event->accept();
     }
     QWidget::mouseMoveEvent(event);

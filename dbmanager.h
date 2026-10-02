@@ -56,8 +56,17 @@ public:
     //判断同步游标是否连续
     bool hasnextsyncseq(const qint64 userid);
 
-    //获取用户好友通知信息
-    void getFriendNotice(const qint64 userid);
+    //拉新用户好友通知信息
+    void getNewFriendNotice(const qint64 userid);
+    //拉新用户好友通知信息
+    void getOlderFriendNotice(const qint64 userid);
+    //聊天记录拉新
+    void getChatHistory_New(const qint64 convid);
+    //聊天记录拉旧
+    void getChatHistory_Older(const qint64 convid);
+    //重置聊天窗口上下界
+    void resetChatBounds(const qint64 convid);
+
 
 signals:
     //返回历史登入信息
@@ -66,8 +75,10 @@ signals:
     void returnConvInfo(const std::shared_ptr<QList<ConvSLInfo>>&convinfo);
     //返回通知信息
     void returnNoticeInfo(const NoticeSLInfo&noticeslinfo);
-    //返回用于显示的通知信息
+    //返回用于显示的通知消息
     void return_FRIENDNOTICE_Display(const std::shared_ptr<QList<DisplayNoticeInfo>>&ldpni);
+    //返回用于消失的会话消息
+    void return_CONVMES_Display(const std::shared_ptr< QList<Mes>>&ldpni);
 
 public:
     QSqlDatabase db;

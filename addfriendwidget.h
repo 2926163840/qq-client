@@ -6,6 +6,7 @@
 #include<QJsonObject>
 
 #include"hovertip.h"
+
 namespace Ui {
 class AddFriendWidget;
 }
