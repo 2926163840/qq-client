@@ -7,6 +7,7 @@
 #include<QJsonArray>
 #include<QListWidget>
 #include<QTimer>
+#include<QScrollBar>
 
 #include"businessmanager.h"
 #include"hovertip.h"
@@ -47,6 +48,8 @@ private slots:
     //搜索按钮
     void on_search_clicked();
 private:
+    //加载更多搜索结果
+    void loadMore();
     //窗口全屏
     void FullScreen();
     // 鼠标按下、移动、松开
@@ -56,7 +59,7 @@ private:
     // 双击事件
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 signals:
-    void search(const QString&partaccount);
+    void search(const QString&partaccount,const QString&lastaccount);
 
 private:
     Ui::AddFriend *ui;
@@ -73,6 +76,12 @@ private:
     //背景标志位
     int user_backgroundflag=NOTKEYBG;
     int group_backgroundflag=NOTKEYBG;
+    //搜索分页游标（上一批最后一条账号，为空表示首次搜索）
+    QString m_lastaccount;
+    //当前搜索关键词
+    QString m_curkeyword;
+    //是否加载更多（区分首次搜索和加载更多）
+    bool m_isloadmore=false;
 };
 
 #endif // ADDFRIEND_H

@@ -36,19 +36,19 @@ public:
     //获取历史登入信息
     void getLoginHistory();
     //播种会话游标
-    void sowConvSeq(const std::shared_ptr<QList<qint64>>&convid);
+    void sowConvSeq(const qint64 userid,const std::shared_ptr<QList<qint64>>&convid);
     //播种通知游标
     void sowNoticeSeq(const qint64 userid);
     //获取会话信息
-    void getConvInfo(const std::shared_ptr<QList<qint64>>&convid);
+    void getConvInfo(const qint64 userid,const std::shared_ptr<QList<qint64>>&convid);
     //获取通知信息
     void getNoticeInfo(const qint64 userid);
     //保存离线消息到本地
-    void saveOfflineMes(const std::shared_ptr<QList<Mes>>&mesinfo);
+    void saveOfflineMes(const qint64 userid,const std::shared_ptr<QList<Mes>>&mesinfo);
     //保存通知增量到本地
     void saveNoticeMes(const std::shared_ptr<QList<Notice>>&mesinfo);
     //判断会话游标是否连续
-    void hasnextconvseq(const qint64 convid);
+    void hasnextconvseq(const qint64 userid,const qint64 convid);
     //判断游标是否连续
     void hasnextnoticeseq(const qint64 userid);
     //判断通知游标是否连续
@@ -66,6 +66,8 @@ public:
     void getChatHistory_Older(const qint64 convid);
     //重置聊天窗口上下界
     void resetChatBounds(const qint64 convid);
+    //查询所有发送中的消息（status=发送中 走status索引）
+    void getSendingMessages();
 
 
 signals:
@@ -79,6 +81,8 @@ signals:
     void return_FRIENDNOTICE_Display(const std::shared_ptr<QList<DisplayNoticeInfo>>&ldpni);
     //返回用于消失的会话消息
     void return_CONVMES_Display(const std::shared_ptr< QList<Mes>>&ldpni);
+    //返回发送中的消息
+    void returnSendingMes(const std::shared_ptr<QList<Mes>>&sendingmes);
 
 public:
     QSqlDatabase db;

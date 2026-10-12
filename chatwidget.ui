@@ -24,7 +24,23 @@
     <normaloff>:/new/prefix1/picture/QQICON.png</normaloff>:/new/prefix1/picture/QQICON.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">#chatwidgettop{
+   <string notr="true">#sendbtn{
+	background-color:#0099FF;
+	border-radius:8px;
+	color:#D0D0D0;
+}
+#sendbtn:hover{
+	background-color:#008DEB;
+}
+#sendbtn:pressed{
+	background-color:#0080D6;
+}
+
+#sendbtnwidget{
+	background-color:#F5F5F5;
+	border:none;
+}
+#chatwidgettop{
 	background-color:#F5F5F5;
 }
 #chatwidgetright{
@@ -35,6 +51,7 @@
 }
 #sendmesedit{
 	background-color:#F5F5F5;
+	border:none;
 }
 #titlebar{
 		background-color:#F1F1F1;
@@ -456,6 +473,59 @@
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
                  </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="sendbtnwidget" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>10</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>20</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>10</number>
+                  </property>
+                  <item>
+                   <spacer name="horizontalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="sendbtn">
+                    <property name="minimumSize">
+                     <size>
+                      <width>90</width>
+                      <height>30</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>90</width>
+                      <height>30</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>发送</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </widget>
                </item>
               </layout>

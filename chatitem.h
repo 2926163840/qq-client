@@ -21,6 +21,8 @@ public:
     void setSelected(bool checked);
     //添加未读数
     void addUnreadCount();
+    //清空未读计数
+    void removeUnreadCount();
 
 private:
     //双击条目事件

@@ -6,6 +6,8 @@
 #include <QWidget>
 #include<QMouseEvent>
 #include<QTimer>
+#include<QShortcut>
+#include<QHash>
 
 #include"UserData.h"
 #include"chatfeature.h"
@@ -42,8 +44,16 @@ public:
     void addMessage(const bool isself,const QString&nickname,const QString&mescontent);
     //添加消息（拉旧）
     void insertMessage(const bool isself,const QString&nickname,const QString&mescontent);
+    //添加发送中的气泡(转圈圈)
+    void appendSendingBubble(const QString&uuid,const QString&content);
+    //更新气泡状态(转圈圈/感叹号/正常)
+    void updateBubbleStatus(const QString&uuid,qint8 status);
 private slots:
     void on_max_clicked();
+
+    void on_sendmesedit_textChanged();
+
+    void on_sendbtn_clicked();
 
 private:
     explicit ChatWidget(qint64 convid,const QString &friendname,std::unique_ptr<ChatFeature>feature,QWidget *parent = nullptr);
@@ -67,6 +77,10 @@ signals:
     void draged(ChatWidget*chatwidget);
     //关闭独立窗口
     void closeSelf(const qint64 convid);
+    //发送消息
+    void sendMes(const qint64 convid,const QString&content,const QString&uuid);
+    //滚动到顶部请求拉取更早的消息
+    void loadOlder(const qint64 convid);
 
 private:
     Ui::ChatWidget *ui;
@@ -84,6 +98,8 @@ private:
     std::unique_ptr<ChatFeature> widgetfeature;
     //关联的会话id
     qint64 convid;
+    //uuid到发送中气泡的映射
+    QHash<QString,ChatBubble*>sendingbubblehash;
     //是否是独立聊天窗口
     bool isIndependent=false;
     //是否首次移动

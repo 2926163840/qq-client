@@ -1,5 +1,7 @@
 #include "chatwidget.h"
 #include "ui_chatwidget.h"
+#include<QUuid>
+#include<QScrollBar>
 
 ChatWidget::ChatWidget(qint64 convid,const QString &friendname,std::unique_ptr<ChatFeature> feature,QWidget *parent)
     : QWidget(parent)
@@ -26,8 +28,18 @@ ChatWidget::ChatWidget(qint64 convid,const QString &friendname,std::unique_ptr<C
     }
     //关闭原生状态栏
     setWindowFlags(Qt::FramelessWindowHint|Qt::NoDropShadowWindowHint|Qt::WindowMinimizeButtonHint);
+    //发送按钮默认无法点击
+    ui->sendbtn->setEnabled(false);
+    //开启发送快捷方式
+    QShortcut*qsc=new QShortcut(QKeySequence(Qt::Key_Enter),this);
+    connect(qsc,&QShortcut::activated,ui->sendbtn,&QPushButton::click);
     //开启关闭自销毁
     setAttribute(Qt::WA_DeleteOnClose);
+    //滚动到顶部触发拉旧（列表有内容才触发，避免初始化误触发）
+    connect(ui->meslist->verticalScrollBar(),&QScrollBar::valueChanged,this,[this](int value){
+        if(value<=0&&ui->meslist->count()>0)
+            emit loadOlder(this->convid);
+    });
 }
 
 ChatWidget::~ChatWidget()
@@ -78,7 +90,7 @@ void ChatWidget::setTitlebarStatus(bool flag)
     if(flag)ui->titlebar->show();
     else ui->titlebar->hide();
 }
-
+//获取独立前左上角坐标
 QPoint ChatWidget::getbefore()
 {
     return beforetopleft;
@@ -91,15 +103,43 @@ void ChatWidget::addMessage(const bool isself, const QString &nickname, const QS
     mesitem->setSizeHint(meswidget->sizeHint());
     ui->meslist->addItem(mesitem);
     ui->meslist->setItemWidget(mesitem,meswidget);
+    //新消息追加后滚到底部
+    ui->meslist->scrollToBottom();
 }
 //插入以往聊天记录
 void ChatWidget::insertMessage(const bool isself, const QString &nickname, const QString &mescontent)
 {
+    QScrollBar*bar=ui->meslist->verticalScrollBar();
+    int oldmax=bar->maximum();
     ChatBubble*meswidget=new ChatBubble(isself,nickname,mescontent);
     QListWidgetItem*mesitem=new QListWidgetItem;
-    mesitem->setSizeHint(QSize(ui->meslist->viewport()->width(),ui->meslist->viewport()->height()));
+    mesitem->setSizeHint(meswidget->sizeHint());
     ui->meslist->insertItem(0,mesitem);
     ui->meslist->setItemWidget(mesitem,meswidget);
+    //保持视觉位置：滚动条下移新增的高度，避免插入到开头时跳动
+    bar->setValue(bar->value()+(bar->maximum()-oldmax));
+}
+//添加发送中的气泡(转圈圈)
+void ChatWidget::appendSendingBubble(const QString&uuid,const QString&content)
+{
+    //自己的消息 isself=true 昵称为空
+    ChatBubble*meswidget=new ChatBubble(true,"",content);
+    //设置发送中状态(转圈圈)
+    meswidget->setStatus(0);
+    QListWidgetItem*mesitem=new QListWidgetItem;
+    mesitem->setSizeHint(meswidget->sizeHint());
+    ui->meslist->addItem(mesitem);
+    ui->meslist->setItemWidget(mesitem,meswidget);
+    //记录uuid到气泡的映射
+    sendingbubblehash.insert(uuid,meswidget);
+}
+//更新气泡状态(转圈圈/感叹号/正常)
+void ChatWidget::updateBubbleStatus(const QString&uuid,qint8 status)
+{
+    auto it=sendingbubblehash.find(uuid);
+    if(it==sendingbubblehash.end())
+        return;
+    it.value()->setStatus(status);
 }
 //按下获取坐标
 void ChatWidget::mousePressEvent(QMouseEvent *event)
@@ -194,7 +234,7 @@ void ChatWidget::mouseDoubleClickEvent(QMouseEvent *event)
     }
     QWidget::mouseDoubleClickEvent(event);
 }
-
+//销毁自己
 void ChatWidget::closeEvent(QCloseEvent *event)
 {
     emit closeSelf(convid);
@@ -233,4 +273,40 @@ void ChatWidget::on_max_clicked()
     FullScreen();
 }
 
+
+//根据文本内容决定发送按钮是否可点击
+void ChatWidget::on_sendmesedit_textChanged()
+{
+    //为空不可点击
+    if(ui->sendmesedit->toPlainText().isEmpty())
+    {
+        ui->sendbtn->setEnabled(false);
+        //同时改变背景色
+        ui->sendbtn->setStyleSheet("color:#D0D0D0");
+    }
+    else
+    {
+        ui->sendbtn->setEnabled(true);
+        //同时改变背景色
+        ui->sendbtn->setStyleSheet("color:#FFFFFF");
+    }
+}
+
+//发送消息
+void ChatWidget::on_sendbtn_clicked()
+{
+    //消息不为空发送消息
+    if(!ui->sendmesedit->toPlainText().isEmpty())
+    {
+        QString content=ui->sendmesedit->toPlainText();
+        //清空输入框
+        ui->sendmesedit->clear();
+        //生成uuid
+        QString uuid=QUuid::createUuid().toString(QUuid::WithoutBraces);
+        //本地立即显示发送中气泡(转圈圈)
+        appendSendingBubble(uuid,content);
+        //发送消息
+        emit sendMes(convid,content,uuid);
+    }
+}
 

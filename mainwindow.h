@@ -17,6 +17,7 @@
 #include<QMap>
 #include<QCoreApplication>
 #include<QSqlError>
+#include<QShortcut>
 
 #include"networkmanager.h"
 #include"businessmanager.h"
@@ -75,6 +76,8 @@ private:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    //创建快捷方式
+    void createShortcut();
 
 private:
     Ui::MainWindow *ui;

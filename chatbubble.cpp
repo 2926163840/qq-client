@@ -40,8 +40,27 @@ ChatBubble::ChatBubble(const bool isself,const QString nickname,const QString me
     //单行长度超过maxw取maxw换行 24为padding
     contentlabel->setFixedWidth(qMin(textW, maxW));
 
-    //加入正文布局
-    contentlayout->addWidget(contentlabel,0,isself?Qt::AlignRight:Qt::AlignLeft);
+    //状态图标(发送中转圈圈 失败感叹号)
+    statuslabel=new QLabel(this);
+    statuslabel->setStyleSheet("color:#FF0000;font-size:14px;background:transparent;");
+    statuslabel->hide();
+
+    //正文和状态图标水平布局 自己的(右侧)状态在正文左边(内侧) 好友的(左侧)状态在正文右边(内侧)
+    QHBoxLayout*messagelayout=new QHBoxLayout;
+    messagelayout->setSpacing(4);
+    if(isself)
+    {
+        messagelayout->addStretch();
+        messagelayout->addWidget(statuslabel);
+        messagelayout->addWidget(contentlabel);
+    }
+    else
+    {
+        messagelayout->addWidget(contentlabel);
+        messagelayout->addWidget(statuslabel);
+        messagelayout->addStretch();
+    }
+    contentlayout->addLayout(messagelayout);
     //好友消息在左侧用户在右侧
     if(isself)
     {
@@ -54,6 +73,26 @@ ChatBubble::ChatBubble(const bool isself,const QString nickname,const QString me
     {
         outer->addLayout(contentlayout);
         outer->addStretch();
+    }
+}
+//设置气泡状态 0发送中 1已送达 2失败
+void ChatBubble::setStatus(qint8 status)
+{
+    switch(status)
+    {
+    case 0://发送中 转圈圈
+        statuslabel->setText("发送中");
+        statuslabel->setStyleSheet("color:#999999;font-size:12px;background:transparent;");
+        statuslabel->show();
+        break;
+    case 2://失败 感叹号
+        statuslabel->setText("!");
+        statuslabel->setStyleSheet("color:#FF0000;font-size:14px;background:transparent;");
+        statuslabel->show();
+        break;
+    default://已送达 隐藏
+        statuslabel->hide();
+        break;
     }
 }
 //调整当前正文窗口的大小

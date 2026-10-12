@@ -13,6 +13,8 @@ class ChatBubble:public QWidget
 {
 public:
     ChatBubble(const bool isself,const QString nickname,const QString mescontent,QWidget*parent=nullptr);
+    //设置气泡状态 0发送中 1已送达 2失败
+    void setStatus(qint8 status);
 
 private:
     //调整正文窗口的大小
@@ -23,6 +25,7 @@ private:
 
 private:
     QLabel*contentlabel;
+    QLabel*statuslabel;  //状态图标(转圈圈/感叹号)
 };
 
 #endif // CHATBUBBLE_H

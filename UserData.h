@@ -17,6 +17,8 @@ enum class NoticeMode{NONE,PENDINGVERIFICATION,PLEASEVERIFICATION,AGREED,REFUSED
 
 //获取信息的类型        焦点改变拉新 滚轮上限拉旧 拉旧
 enum class MesRequest{CHATFOCUS,CHATMORE,NOTICEMORE};
+//消息状态             发送中  发送成功 失败
+enum class MesStatus{SENDING,SENT,FAILED};
 
 //活跃视图结构体
 struct ActiveView
@@ -103,6 +105,14 @@ struct DisplayNoticeInfo{
     }
 };
 
+//消息状态（服务器和客户端统一）
+enum class MsgStatus : qint8
+{
+    Sending = 0,    // 发送中
+    Delivered = 1,  // 已送达
+    Failed = 2      // 失败
+};
+
 //消息结构体
 struct Mes
 {
@@ -113,7 +123,24 @@ struct Mes
     qint64 sendid;
     bool isself=false;
     QString friendname;
+    QString uuid="";       // 消息唯一id
+    qint8 status=1;     // 消息状态 默认已送达
+    bool isolder=false; // 是否为拉旧的历史消息（决定插入开头还是追加末尾）
 };
+
+//发送中消息信息（哈希表value key是uuid）
+struct SendingInfo
+{
+    QString uuid;       // 重发用
+    qint64 convid;
+    QString content;    // 重发需要重新发内容
+    qint64 sendtime;    // 客户端发送时间戳 超时判断
+    int retrycount;     // 重试次数
+};
+
+#define TIMEOUT_MS 30000      // 30秒超时
+#define MAX_RETRY 6           // 最多重试6次
+#define RETRY_INTERVAL 5000   // 定时器5秒
 //通知结构体
 struct Notice
 {

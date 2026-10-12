@@ -48,6 +48,9 @@ QPushButton#login:pressed{
 	background-color:#0081D6;
 	color:#40A1E0;
 }
+QPushButton#login:hover{
+	background-color:#008DEB;
+}
 QLineEdit{
 	border-radius:4px;
     background-color:#ffffff;

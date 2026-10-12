@@ -169,6 +169,13 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
     QWidget::mouseReleaseEvent(event);
 }
 
+void MainWindow::createShortcut()
+{
+    //快速登入
+    QShortcut*qsc_login=new QShortcut(QKeySequence(Qt::Key_Enter),this);
+    connect(qsc_login,&QShortcut::activated,ui->login,&QPushButton::click);
+}
+
 //进入注册界面
 void MainWindow::on_registeruser_clicked()
 {

@@ -54,8 +54,10 @@ void UserWidget::readCmd()
     connect(this,&UserWidget::getMes,busmana,&BusinessManager::getMes);
     //出现独立聊天窗口
     connect(this,&UserWidget::haveIndependChatWidget,busmana,&BusinessManager::haveIndependChatWidget);
-    //独立聊天窗口销毁
-    connect(this,&UserWidget::removeIndependChatWidget,busmana,&BusinessManager::removeIndependChatWidget);
+    //窗口附着（拖回主窗口）
+    connect(this,&UserWidget::chatwidgetAttached,busmana,&BusinessManager::chatwidgetAttached);
+    //独立窗口销毁
+    connect(this,&UserWidget::closeSelf,busmana,&BusinessManager::closeSelf);
 
     //有好友通知
     connect(busmana,&BusinessManager::haveFriendNotice,this,&UserWidget::RenderFriendNotice);
@@ -63,6 +65,8 @@ void UserWidget::readCmd()
     connect(busmana,&BusinessManager::haveChatMes,this,&UserWidget::RenderChatMes);
     //有未读消息添加计数
     connect(busmana,&BusinessManager::haveUnreadMes,this,&UserWidget::addUnreadCount);
+    //消息状态变化(转圈圈/感叹号)
+    connect(busmana,&BusinessManager::mesStatusChanged,this,&UserWidget::onMesStatusChanged);
 
     void haveUnreadMes(const QList<qint64>&urcv);
 
@@ -77,7 +81,9 @@ void UserWidget::readCmd()
     });
     //还有通知状态改变
     connect(busmana,&BusinessManager::FriendNoticeStatusChanged,this,[this](const qint64 bindid,const NoticeMode newstatus){
-        friendnoticeitemhash.find(bindid).value()->setStatus(newstatus);
+        auto it=friendnoticeitemhash.find(bindid);
+        if(it!=friendnoticeitemhash.end()&&it.value())
+            it.value()->setStatus(newstatus);
     });
 
     // //接收好友消息
@@ -94,14 +100,15 @@ void UserWidget::recvMessage(const qint64 sendid,const QString&content)
 {
     QJsonObject reply;
     reply.insert("cmd","recvmessuccess");
-    qDebug()<<content;
     emit recvSuccess(reply);
 }
 
-//添加好友条目信息
+//添加好友条目信息(好友列表)
 void UserWidget::addFriendItem(const IdentityInfo identityinfo, const QString &friendname, const QString &friendidentity)
 {
-    QTreeWidgetItem*item=new QTreeWidgetItem(friendlisthash.find(friendidentity).value());
+    auto groupit=friendlisthash.find(friendidentity);
+    if(groupit==friendlisthash.end())return; // 分组不存在时忽略
+    QTreeWidgetItem*item=new QTreeWidgetItem(groupit.value());
     //好友信息条目窗口
     ChatItem*itemwidget=new ChatItem(identityinfo,friendname);
     //建立信号（双击创建窗口）
@@ -153,8 +160,9 @@ void UserWidget::createChatWidget(const IdentityInfo &identityinfo,const QString
     {
         //创建消息列表条目
         createChatWidget_Item(identityinfo,friendname);
-
-    }
+    }//存在则清空未读计数
+    else
+        static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.find(identityinfo.convid).value()))->removeUnreadCount();
     //聊天窗口窗口不存在则创建后切换
     if(!chatwidgethash.contains(identityinfo.convid))
     {
@@ -163,9 +171,6 @@ void UserWidget::createChatWidget(const IdentityInfo &identityinfo,const QString
     //存在跳转到消息模式显示窗口
     else
     {
-        //拿到条目内嵌窗口设为选中状态
-        ChatItem*temp=static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.find(identityinfo.convid).value()));
-        temp->setSelected(true);
         //如果当前窗口不为双击好友对应的窗口则隐藏当前聊天窗口显示切换窗口反之显示聊天窗口
         ChatWidget*chatwidget=chatwidgethash.find(identityinfo.convid).value();
         //如果聊天窗口已经独立则直接顶层显示
@@ -191,6 +196,8 @@ void UserWidget::createChatWidget(const IdentityInfo &identityinfo,const QString
     }
     //跳转到消息模式
     ui->messagepattern->setChecked(true);
+    //统一同步选中态
+    syncSelectionState();
 }
 //创建聊天窗口
 void UserWidget::createChatWidget_Widget(const IdentityInfo &identityinfo,const QString&friendname)
@@ -204,18 +211,19 @@ void UserWidget::createChatWidget_Widget(const IdentityInfo &identityinfo,const 
     connect(chatwidget,&ChatWidget::closeSelf,this,[this](const qint64 convid){
         chatwidgethash.remove(convid);
         //独立窗口销毁
-        emit removeIndependChatWidget(convid);
+        emit closeSelf(convid);
     });
-    //滚轮划到顶部（历史记录拉旧）
-    connect(ui->userchatlist->verticalScrollBar(),&QScrollBar::valueChanged,this,[this](int value){
-        //聊天框划到顶聊天记录拉旧
-        if(value<=0)
-            getMes(MesRequest::CHATMORE);
+    //滚动到顶部（历史记录拉旧）
+    connect(chatwidget,&ChatWidget::loadOlder,this,[this](const qint64 convid){
+        //拉旧中防重（和通知拉旧一样）
+        if(get_ChatMesing) return;
+        get_ChatMesing=true;
+        getMes(MesRequest::CHATMORE,convid);
     });
+    //发送消息信号
+    connect(chatwidget,&ChatWidget::sendMes,busmana,&BusinessManager::sendMes);
     //将窗口加入哈希表
     chatwidgethash.insert(identityinfo.convid,chatwidget);
-    //默认滚轮在底部
-    ui->userchatlist->verticalScrollBar()->setValue(ui->userchatlist->verticalScrollBar()->maximum());
     //设置窗口初始位置
     toggleChatWidget(chatwidget);
 }
@@ -238,6 +246,8 @@ void UserWidget::ChatWidget_Draging(ChatWidget *obj)
     //改变独立标志位
     obj->setIndepend(true);
     obj->show();
+    //独立后清除对应条目选中态
+    syncSelectionState();
 }
 //拖拽完成判断独立还是附着
 void UserWidget::ChatWidget_Draged(ChatWidget *obj)
@@ -260,10 +270,10 @@ void UserWidget::ChatWidget_Draged(ChatWidget *obj)
         obj->setTitlebarStatus(false);
         //走切换窗口代码（重新加入布局改变焦点窗口）
         toggleChatWidget(obj);
-        //独立窗口销毁
-        emit removeIndependChatWidget(obj->getConvid());
         //焦点改变
         emit getMes(MesRequest::CHATFOCUS,obj->getConvid());
+        //窗口附着
+        emit chatwidgetAttached(obj->getConvid());
     }
     //反之成功独立窗口
     else{
@@ -278,12 +288,19 @@ void UserWidget::createChatWidget_Item(const IdentityInfo &identityinfo, const Q
     ChatItem*itemwidget=new ChatItem(identityinfo,friendname);
     //单击判断窗口是否还存在
     connect(itemwidget,&ChatItem::Clicked,this,[this,identityinfo,friendname](qint64 convid){
-        //不存在出现创建并切换
-        if(!chatwidgethash.contains(convid))
+        ChatWidget*cw=chatwidgethash.value(convid,nullptr);
+        //窗口不存在则创建
+        if(!cw)
             createChatWidget_Widget(identityinfo,friendname);
-        //存在切换
+        //窗口独立只激活独立窗口(条目不选中)
+        else if(cw->getIndepend())
+        {
+            cw->show();
+            cw->raise();
+        }
+        //窗口附着切换显示(内部统一同步选中态)
         else
-            toggleChatWidget(chatwidgethash.find(convid).value());
+            toggleChatWidget(cw);
     });
 
     //新建立的窗口置顶
@@ -304,6 +321,8 @@ void UserWidget::toggleChatWidget(ChatWidget *chatwidget)
         //顶层显示
         chatwidget->show();
         chatwidget->raise();
+        //独立窗口条目不选中
+        syncSelectionState();
         //返回不发送后续聊天窗口焦点改变信号
         return;
     }
@@ -340,6 +359,35 @@ void UserWidget::toggleChatWidget(ChatWidget *chatwidget)
     }
     //焦点窗口切换发出信号
     emit getMes(MesRequest::CHATFOCUS,convid);
+    //统一同步消息条目选中态
+    syncSelectionState();
+}
+
+//根据当前焦点窗口统一同步消息条目选中态
+void UserWidget::syncSelectionState()
+{
+    //本次应该选中的会话id:curchatwidget 为空(无焦点窗口)则为 -1
+    qint64 target = curchatwidget ? curchatwidget->getConvid() : -1;
+
+    //目标没变,选中态无需调整
+    if(target == m_selectedConvid) return;
+
+    //撤销旧的上一次选中的条目取消选中(上次无选中则 m_selectedConvid==-1,跳过)
+    if(m_selectedConvid != -1 && messagelisthash.contains(m_selectedConvid))
+    {
+        ChatItem*old=static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.value(m_selectedConvid)));
+        if(old) old->setSelected(false);
+    }
+
+    //选中新的本次目标条目选中(本次无焦点则 target==-1,跳过)
+    if(target != -1 && messagelisthash.contains(target))
+    {
+        ChatItem*cur=static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.value(target)));
+        if(cur) cur->setSelected(true);
+    }
+
+    //记录本次选中结果,供下次增量撤销
+    m_selectedConvid = target;
 }
 
 //添加好友或群聊
@@ -406,29 +454,49 @@ void UserWidget::RenderFriendNotice(const std::shared_ptr<QList<DisplayNoticeInf
     //如果是拉旧数据获取完毕取消拉取中状态
     if(get_NoticeMesing_Friend)get_NoticeMesing_Friend=false;
 }
-//有聊天信息（拉新）
+//有聊天信息 只做显示
 void UserWidget::RenderChatMes(const std::shared_ptr<QList<Mes>> &ldpni)
 {
+    //收到拉旧结果（空或非空）就复位拉旧中标志
+    get_ChatMesing=false;
     for(auto&row:*ldpni)
     {
-        //窗口存在添加消息
+        //窗口已打开直接显示消息
         if(chatwidgethash.contains(row.convid))
         {
-            chatwidgethash.find(row.convid).value()->addMessage(row.isself,row.friendname,row.content);
+            //拉旧的历史消息插入到开头，新消息追加到末尾
+            if(row.isolder)
+                chatwidgethash.value(row.convid)->insertMessage(row.isself,row.friendname,row.content);
+            else
+                chatwidgethash.value(row.convid)->addMessage(row.isself,row.friendname,row.content);
         }
     }
+}
+//消息状态变化(发送中/发送成功/发送失败)
+void UserWidget::onMesStatusChanged(const QString&uuid,qint64 convid,qint8 status)
+{
+    //窗口不存在不处理
+    if(!chatwidgethash.contains(convid))
+        return;
+    ChatWidget*chatwidget=chatwidgethash.find(convid).value();
+    //根据status更新气泡状态
+    chatwidget->updateBubbleStatus(uuid,status);
 }
 //添加未读计数
 void UserWidget::addUnreadCount(const QList<qint64> &uncv)
 {
     for(auto&row:uncv)
     {
-        //条目不存在跳过
+        //条目不存在则创建
         if(!messagelisthash.contains(row))
-            continue;
+        {
+            IdentityInfo identityinfo("Friend", row);
+            createChatWidget_Item(identityinfo, busmana->getFriendName(row));
+        }
         //添加未读计数
         ChatItem*chatitem=static_cast<ChatItem*>(ui->messagelist->itemWidget(messagelisthash.find(row).value()));
-        chatitem->addUnreadCount();
+        if(chatitem)
+            chatitem->addUnreadCount();
     }
 }
 

@@ -82,6 +82,8 @@ private:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     //读命令
     void readCmd();
+    //消息状态变化(转圈圈/感叹号)
+    void onMesStatusChanged(const QString&uuid,qint64 convid,qint8 status);
 
     //添加好友信息条目
     void addFriendItem(const IdentityInfo identityinfo,const QString&friendname,const QString&friendidentity);
@@ -107,6 +109,8 @@ private:
     void addMessageList();
     //设置聊天窗口位置大小
     void toggleChatWidget(ChatWidget*chatwidget);
+    //根据当前焦点窗口统一同步消息条目选中态
+    void syncSelectionState();
 
     //收到消息
     void recvMessage(const qint64 sendid,const QString&content);
@@ -138,8 +142,10 @@ signals:
     void getMes(const MesRequest type,const qint64 convid=-1);
     //窗口独立
     void haveIndependChatWidget(const qint64 convid);
-    //独立窗口销毁或改变
-    void removeIndependChatWidget(const qint64 convid);
+    //窗口附着（拖回主窗口）
+    void chatwidgetAttached(const qint64 convid);
+    //独立窗口销毁
+    void closeSelf(const qint64 convid);
 
 
     //收到消息成功
@@ -167,6 +173,8 @@ private:
     QHash<qint64,ChatWidget*> chatwidgethash;   //key=convid
     //当前显示的聊天窗口
     ChatWidget*curchatwidget=nullptr;
+    //上一次同步后处于选中态的消息条目会话id
+    qint64 m_selectedConvid=-1;
     //存取群聊列表条目
     QHash<QString,QTreeWidgetItem*> grouplisthash;  //key=群分组
     //会话id对应的条目

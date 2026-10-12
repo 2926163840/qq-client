@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     //注册自定义类型不然跨线程无法传递
     qRegisterMetaType<std::shared_ptr<QList<Mes>>>();
+    qRegisterMetaType<std::shared_ptr<QList<QString>>>();
     qRegisterMetaType<std::shared_ptr<QList<Notice>>>();
     qRegisterMetaType<std::shared_ptr<QList<LoginHistory>>>();
     qRegisterMetaType<std::shared_ptr<QList<ConvSLInfo>>>();
@@ -47,8 +48,12 @@ int main(int argc, char *argv[])
     QObject::connect(w,&MainWindow::quitInterface,[&]{
         //先隐藏界面
         w->hide();
+        //阻塞释放网络资源
+        QMetaObject::invokeMethod(netmana,&NetworkManager::stop,Qt::BlockingQueuedConnection);
         netthread->quit();
         netthread->wait(3000);
+        //阻塞数据库线程释放资源
+        QMetaObject::invokeMethod(dbmana,&DBManager::DBClose,Qt::BlockingQueuedConnection);
         dbthread->quit();
         dbthread->wait(3000);
         //释放玩资源后再关闭界面(先让顶层可见窗口变为1在close才会退出事件循环)

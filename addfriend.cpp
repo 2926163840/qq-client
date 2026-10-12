@@ -34,6 +34,14 @@ AddFriend::AddFriend(QWidget *parent)
     connect(busmana,&BusinessManager::addFriendReuqestFailed,this,&AddFriend::requestFailed);
     //添加了自己
     connect(busmana,&BusinessManager::addOneself,this,&AddFriend::NotAddOneself);
+
+    //滚动到底加载更多搜索结果
+    connect(ui->userlist->verticalScrollBar(),&QScrollBar::valueChanged,this,[this](int value){
+        if(ui->userlist->verticalScrollBar()->maximum()>0 &&
+           value==ui->userlist->verticalScrollBar()->maximum() &&
+           !m_lastaccount.isEmpty())
+            loadMore();
+    });
 }
 
 AddFriend::~AddFriend()
@@ -85,6 +93,15 @@ void AddFriend::mouseDoubleClickEvent(QMouseEvent *event)
     QWidget::mouseDoubleClickEvent(event);
 }
 
+//加载更多搜索结果
+void AddFriend::loadMore()
+{
+    //没有关键词或没有上一批游标则不再拉
+    if(m_curkeyword.isEmpty() || m_lastaccount.isEmpty())
+        return;
+    m_isloadmore=true;
+    emit search(m_curkeyword,m_lastaccount);
+}
 //搜索失败
 void AddFriend::SearchFailed()
 {
@@ -93,13 +110,17 @@ void AddFriend::SearchFailed()
 //搜索成功
 void AddFriend::SearchSuccess(const QList<SearchInfo>&friendlist,const QList<SearchInfo>&grouplist)
 {
-    //再次搜索前先清空原本的内容
-    ui->userlist->clear();
+    //首次搜索清空，加载更多追加
+    if(!m_isloadmore)
+        ui->userlist->clear();
     //无搜索信息换背景
     if(friendlist.isEmpty())
     {
-        user_backgroundflag=NOTRESULT;
-        EmptyTipWidget::SetEmptyTip(ui->userlist,":/new/prefix1/picture/notresult.png","暂无搜索结果");
+        if(!m_isloadmore)
+        {
+            user_backgroundflag=NOTRESULT;
+            EmptyTipWidget::SetEmptyTip(ui->userlist,":/new/prefix1/picture/notresult.png","暂无搜索结果");
+        }
     }
     else
     {
@@ -129,13 +150,17 @@ void AddFriend::SearchSuccess(const QList<SearchInfo>&friendlist,const QList<Sea
                 //设置关闭自动销毁
                 addwidget->setAttribute(Qt::WA_DeleteOnClose);
                 //主窗口销毁子窗口跟着销毁
-                connect(this,&AddFriend::close,addwidget,&AddFriendWidget::close);
+                connect(this,&AddFriend::destroyed,addwidget,&AddFriendWidget::close);
                 addwidget->show();
                 //接收添加好友窗口发出的数据
                 connect(addwidget,&AddFriendWidget::requestAddFriend,busmana,&BusinessManager::requestAddFriend);
             });
         }
+        //更新游标为最后一条账号（供下次加载更多）
+        m_lastaccount=friendlist.last().account;
     }
+    //加载完成，复位标志
+    m_isloadmore=false;
     //再次搜索前先清空原本的内容
     ui->grouplist->clear();
     //无搜索信息换背景
@@ -216,8 +241,12 @@ void AddFriend::on_search_clicked()
 {
     if(!ui->searchedit->text().isEmpty())
     {
+        //首次搜索：清空游标和加载更多标志
+        m_curkeyword=ui->searchedit->text();
+        m_lastaccount="";
+        m_isloadmore=false;
         //发送要搜索的信息
-        emit search(ui->searchedit->text());
+        emit search(m_curkeyword,m_lastaccount);
     }
     //未输入搜索文本
     else

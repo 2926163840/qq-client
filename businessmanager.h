@@ -33,6 +33,8 @@ public:
     void Register(const QString&username, const QString&password);
     //用户要登入
     void login(const QString&account,const QString&password);
+    //重连成功重新登录
+    void onReconnect();
     //登入成功
     void login_success(const qint64 id, const QString&username);
     //保存用户好友群聊信息
@@ -48,6 +50,8 @@ public:
                        const QString&friendremark,const QString&friendidentity);
     //创建聊天窗口
     void createChatWidget(const IdentityInfo&identityinfo);
+    //按会话id查好友名(未读创建条目用)
+    QString getFriendName(const qint64 convid);
 
     //获取信息
     void getMes(const MesRequest type,const qint64 convid);
@@ -89,11 +93,11 @@ signals:
     //传递登入信息
     void sendLoginInfo(const QString&account,const QString&pwd,bool auto_login,bool rem_pwd,qint64 login_time);
     //获取会话信息
-    void getConvInfo(std::shared_ptr<QList<qint64>>);
+    void getConvInfo(const qint64 userid,std::shared_ptr<QList<qint64>>);
     //获取通知信息
     void getNoticeInfo(const qint64 userid);
     //搜索请求
-    void searchRequest(const QString&partaccount);
+    void searchRequest(const QString&partaccount,const QString&lastaccount);
     //搜索成功将数据发给ui层
     void snedSearchInfo(const QList<SearchInfo>&friendlist,const QList<SearchInfo>&grouplist);
     //搜索失败
@@ -118,9 +122,16 @@ signals:
 
     //窗口独立
     void haveIndependChatWidget(const qint64 convid);
-    //独立窗口销毁或改变
-    void removeIndependChatWidget(const qint64 convid);
+    //窗口附着（拖回主窗口）
+    void chatwidgetAttached(const qint64 convid);
+    //独立窗口销毁
+    void closeSelf(const qint64 convid);
 
+
+    //发送消息
+    void sendMes(const qint64 convid,const QString&content,const QString&uuid);
+    //消息状态变化(转圈圈/感叹号)
+    void mesStatusChanged(const QString&uuid,qint64 convid,qint8 status);
     //有聊天消息
     void haveChatMes(const std::shared_ptr<QList<Mes>>&ldpni);
     //有未读消息添加计数
@@ -149,6 +160,10 @@ private:
     bool loginsuccessflag=false;
     //用户id
     qint64 userid=-1;
+    //当前登录账号(重连重新登录用)
+    QString curacount;
+    //当前登录密码(重连重新登录用)
+    QString curpassword;
 
 };
 

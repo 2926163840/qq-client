@@ -1,4 +1,5 @@
 #include "handlercmd.h"
+#include<QDateTime>
 
 HandlerCmd::HandlerCmd(QObject *parent)
     : QObject{parent}
@@ -8,7 +9,7 @@ HandlerCmd::HandlerCmd(QObject *parent)
     //传递好友通知信息给ui
     connect(dbmana,&DBManager::return_FRIENDNOTICE_Display,this,&HandlerCmd::haveFriendNotice);
     //传递好友通知信息给ui
-    connect(dbmana,&DBManager::return_CONVMES_Display,this,&HandlerCmd::judgeMes);
+    connect(dbmana,&DBManager::return_CONVMES_Display,this,&HandlerCmd::dispatchMes);
 
 
 
@@ -47,6 +48,12 @@ HandlerCmd::HandlerCmd(QObject *parent)
     connect(this,&HandlerCmd::getChatHistory_Older,dbmana,&DBManager::getChatHistory_Older);
     //聊天记录重置上下界
     connect(this,&HandlerCmd::resetChatBounds,dbmana,&DBManager::resetChatBounds);
+    //查询发送中消息
+    connect(this,&HandlerCmd::getSendingMes,dbmana,&DBManager::getSendingMessages);
+    //数据库返回发送中消息
+    connect(dbmana,&DBManager::returnSendingMes,this,&HandlerCmd::initSendingHash);
+    //定时重发
+    connect(&retryTimer,&QTimer::timeout,this,&HandlerCmd::onRetryTimeout);
 
 }
 //通知模式改变（拉新通知信息）
@@ -82,38 +89,123 @@ void HandlerCmd::getOlderChatHistory(const qint64 convid)
 {
     //拉旧聊天记录
     emit getChatHistory_Older(convid);
-    qDebug()<<999;
+    qDebug()<<"拉旧";
 }
 //窗口独立
 void HandlerCmd::haveIndependChatWidget(const qint64 convid)
 {
     avtiveview.indepconv.insert(convid);
 }
-//独立窗口销毁或改变
-void HandlerCmd::removeIndependChatWidget(const qint64 convid)
+//剔除独立出口（附着和销毁都调用）
+void HandlerCmd::removeIndepChat(const qint64 convid)
 {
     avtiveview.indepconv.remove(convid);
+}
+//独立窗口销毁（剔除独立+重置边界）
+void HandlerCmd::closeChatWidget(const qint64 convid)
+{
+    //剔除独立
+    removeIndepChat(convid);
+    //重置窗口聊天消息边界
     emit resetChatBounds(convid);
 }
-//判断消息应该是未读还是显示
-void HandlerCmd::judgeMes(const std::shared_ptr<QList<Mes>> &ldpni)
+//判断消息应该是未读还是显示(拆成要显示的和未读的)
+void HandlerCmd::judgeMes(const std::shared_ptr<QList<Mes>>&meslist,std::shared_ptr<QList<Mes>>&displaylist,QList<qint64>&unreadlist)
 {
-    QList<qint64> unreaditem;
-    for(auto it=ldpni->begin();it!=ldpni->end();it++)
+    displaylist=std::make_shared<QList<Mes>>();
+    for(const auto&row:*meslist)
     {
-        Mes&row=*it;
-        //窗口未独立且不是焦点只提示未读
-        if(avtiveview.focusconv!=row.convid&&avtiveview.indepconv.contains(row.convid))
+        //拉旧的历史消息总是显示（用户主动滚动到顶拉的，不受焦点影响）
+        if(row.isolder)
         {
-            unreaditem.append(row.convid);
-            //从原容器中移除
-            ldpni->erase(it);
+            displaylist->append(row);
+            continue;
         }
+        //非焦点且非独立(未打开)只提示未读
+        if(avtiveview.focusconv!=row.convid&&!avtiveview.indepconv.contains(row.convid))
+            unreadlist.append(row.convid);
+        //焦点窗口和独立窗口 要显示
+        else
+            displaylist->append(row);
     }
-    if(!unreaditem.empty())
-        emit haveUnreadMes(unreaditem);
-    //要显示的消息
-    emit haveChatMes(ldpni);
+}
+//消息分发(判断+emit 拉取历史/别人发/离线都用)
+void HandlerCmd::dispatchMes(const std::shared_ptr<QList<Mes>>&meslist)
+{
+    std::shared_ptr<QList<Mes>> displaylist;
+    QList<qint64> unreadlist;
+    judgeMes(meslist,displaylist,unreadlist);
+    if(!unreadlist.isEmpty())
+        emit haveUnreadMes(unreadlist);
+    //无条件发（哪怕空列表，让 UI 复位拉旧中标志）
+    emit haveChatMes(displaylist);
+}
+//消息落库+分发(别人发/离线用)
+void HandlerCmd::persistMes(const std::shared_ptr<QList<Mes>>&meslist)
+{
+    if(meslist->isEmpty())
+        return;
+    //落库
+    emit sendOfflineMes(userid,meslist);
+    //分发
+    dispatchMes(meslist);
+}
+//发送消息
+void HandlerCmd::sendMes(const qint64 convid, const QString &content, const QString &uuid)
+{
+    qint64 sendtime=QDateTime::currentMSecsSinceEpoch();
+
+    //断连了：直接标失败 不加入哈希表 不发网络
+    if(!netmana->isConnected())
+    {
+        //构造失败消息落库
+        std::shared_ptr<QList<Mes>> meslist=std::make_shared<QList<Mes>>();
+        Mes m;
+        m.uuid=uuid;
+        m.convid=convid;
+        m.convseq=-1;
+        m.sendid=userid;
+        m.content=content;
+        m.sendtime=sendtime;
+        m.status=static_cast<qint8>(MsgStatus::Failed);
+        meslist->emplace_back(m);
+        emit sendOfflineMes(userid,meslist);
+        //通知UI报红
+        emit mesStatusChanged(uuid,convid,static_cast<qint8>(MsgStatus::Failed));
+        return;
+    }
+
+    //内存哈希表记录发送中
+    {
+        QMutexLocker locker(&sendingMutex);
+        sendinghash.insert(uuid,{uuid,convid,content,sendtime,0});
+    }
+
+    //构造发送中消息落库(序列-1 状态发送中)
+    std::shared_ptr<QList<Mes>> meslist=std::make_shared<QList<Mes>>();
+    Mes m;
+    m.uuid=uuid;
+    m.convid=convid;
+    m.convseq=-1;
+    m.sendid=userid;
+    m.content=content;
+    m.sendtime=sendtime;
+    m.status=static_cast<qint8>(MsgStatus::Sending);
+    meslist->emplace_back(m);
+    emit sendOfflineMes(userid,meslist);
+
+    //发网络
+    QJsonObject senddata;
+    senddata.insert("cmd","sendmessage");
+    senddata.insert("convid",convid);
+    senddata.insert("sendid",userid);
+    senddata.insert("content",content);
+    senddata.insert("uuid",uuid);
+    emit sendJson(senddata);
+
+    //开启定时器
+    if(!retryTimer.isActive())
+        retryTimer.start(RETRY_INTERVAL);
 }
 
 //登入成功获取数据回复
@@ -122,8 +214,6 @@ void HandlerCmd::handleloginsuccess(const QJsonObject&data)
     //获取用户数据成功
     if(data.value("result")=="getuserdata_success")
     {
-        //将数据发给业务层
-        emit getuserdata_success(data.value("friendlist").toArray(),data.value("grouplist").toArray());
         //好友会话id容器
         std::shared_ptr<QList<qint64>> convidlist=std::make_shared<QList<qint64>>();
         //取出好友会话id
@@ -137,13 +227,11 @@ void HandlerCmd::handleloginsuccess(const QJsonObject&data)
             QJsonObject friendinfo=row.toObject();
             convidlist->emplace_back(friendinfo.value("convid").toInteger());
         }
-        //数据为空
-        if(convidlist->isEmpty())
-        {
-            return;
-        }
-        //将会话id种子发给数据库
-        emit sendConvSeed(convidlist);
+        //先播种游标(插入convseqtable 保证后面查游标能查到 否则第一次登入查不到游标就不拉离线)
+        if(!convidlist->isEmpty())
+            emit sendConvSeed(userid,convidlist);
+        //再通知业务层获取数据(拉离线 此时游标已播种)
+        emit getuserdata_success(data.value("friendlist").toArray(),data.value("grouplist").toArray());
     }
     //获取用户数据失败
     else if(data.value("result")=="getuserdata_failed")
@@ -169,6 +257,8 @@ void HandlerCmd::getOfflineMes(const std::shared_ptr<QList<ConvSLInfo>>&convinfo
         convrow.insert("convid",row.convid);
         convrow.insert("lastseq",row.convseq);
         convinfoarray.append(convrow);
+        qDebug()<<"lastseq"<<row.convseq;
+
     }
     QJsonObject senddata;
     senddata.insert("cmd","getofflinemes");
@@ -186,18 +276,22 @@ void HandlerCmd::getNoticeMes(const NoticeSLInfo&noticeslinfo)
 }
 
 //搜索请求
-void HandlerCmd::searchRequest(const QString&partaccount)
+void HandlerCmd::searchRequest(const QString&partaccount,const QString&lastaccount)
 {
     QJsonObject data;
     data.insert("cmd","search");
     //部分账号信息
     data.insert("accountinfo",partaccount);
+    //分页游标（上一批最后一条账号，首次为空）
+    data.insert("lastaccount",lastaccount);
     emit sendJson(data);
 }
 
 //处理搜索回复命令
 void HandlerCmd::handleSearchInfo(const QJsonObject&data)
 {
+    qDebug() << "搜索回复:" << data.value("result").toString()
+        << " 好友数:" << data.value("friendinfo").toArray().size();
     //搜索成功显示到搜索界面
     if(data.value("result")=="search_success")
     {
@@ -229,28 +323,48 @@ void HandlerCmd::searchSuccess(const QJsonArray&friendinfo,const QJsonArray&grou
     emit snedSearchInfo(friendlist,grouplist);
 }
 
+//从JSON数组解析消息列表（离线消息offlinemes和消息回执meslist共用）
+std::shared_ptr<QList<Mes>> HandlerCmd::parseMesArray(const QJsonArray&arr)
+{
+    std::shared_ptr<QList<Mes>>allmes=std::make_shared<QList<Mes>>();
+    allmes->reserve(arr.size());
+    for(const auto&mes:arr)
+    {
+        QJsonObject row=mes.toObject();
+        Mes m;
+        m.convid=row.value("convid").toInteger();
+        m.convseq=row.value("convseq").toInteger();
+        m.sendid=row.value("sendid").toInteger();
+        m.content=row.value("content").toString();
+        m.sendtime=row.value("sendtime").toInteger();
+        m.uuid=row.value("uuid").toString();
+        m.status=row.value("status").toInt();
+        allmes->emplace_back(m);
+        qDebug()<<"m.content:"<<m.content;
+    }
+    return allmes;
+}
 //保存离线消息
 void HandlerCmd::saveOfflineMes(const QJsonObject&data)
 {
-    std::shared_ptr<QList<Mes>> allmes=std::make_shared<QList<Mes>>();
-    //将离线消息全部取出放list容器里面
-    for(const auto&mes:data.value("offlinemes").toArray())
+    QJsonArray offlinemes = data.value("offlinemes").toArray();
+    int chunk_seq = data.value("chunk_seq").toInt(-1);
+    int chunk_total = data.value("chunk_total").toInt(1);
+
+    //分片：缓存，收齐后合并处理
+    if (chunk_total > 1)
     {
-        QJsonObject row=mes.toObject();
-        qint64 convid=row.value("convid").toInteger();
-        qint64 convseq=row.value("convseq").toInteger();
-        qint64 sendid=row.value("sendid").toInteger();
-        QString content=row.value("content").toString();
-        qint64 sendtime=row.value("sendtime").toInteger();
-        allmes->emplace_back(content,sendtime,convid,convseq,sendid);
+        if (!offlineCollector.add(chunk_seq, chunk_total, offlinemes))
+            return;  // 还没收齐
+        offlinemes = offlineCollector.merged();
     }
-    //没有新的消息增量
-    if(allmes->isEmpty())
-    {
-        return;
-    }
-    //发送离线消息给数据库处理
-    emit sendOfflineMes(allmes);
+
+    //复用解析函数，离线消息批量落库
+    std::shared_ptr<QList<Mes>> allmes=parseMesArray(offlinemes);
+    //有新的消息增量就落库+分发
+    persistMes(allmes);
+    //拉完离线消息后初始化发送中哈希表 此时剩下的发送中才是真正没入库的
+    emit getSendingMes();
 }
 //保存通知增量
 void HandlerCmd::saveNoticeMes(const QJsonObject &data)
@@ -342,6 +456,8 @@ void HandlerCmd::handleaddfriend(const QJsonObject&data)
     //请求成功
     if(data.value("result")=="addfriend_success")
     {
+        qDebug() << "收到同意好友, friendidentity=" << data.value("friendidentity").toString()
+                 << " bindid=" << data.value("bindid").toInteger();
         addNewNotice(data.value("userid").toInteger(),
                      data.value("userseq").toInteger(),
                      data.value("bindid").toInteger(),
@@ -367,7 +483,7 @@ void HandlerCmd::handleaddfriend(const QJsonObject&data)
     {
         AddFriendSuccess(data.value("convid").toInteger(),
                          data.value("myconvseq").toInteger(),
-                         data.value("friendgreetseq").toInteger(),
+                         data.value("friendconvseq").toInteger(),
                          data.value("friendid").toInteger(),
                          data.value("mygreet").toString(),
                          data.value("friendgreet").toString(),
@@ -377,7 +493,9 @@ void HandlerCmd::handleaddfriend(const QJsonObject&data)
                          data.value("friendaccount").toString(),
                          data.value("friendremark").toString(),
                          data.value("friendname").toString(),
-                         data.value("friendidentity").toString());
+                         data.value("friendidentity").toString(),
+                         data.value("uuid").toString(),
+                         data.value("friendgreetuuid").toString());
     }
     //拒绝好友请求
     else if(data.value("result")=="addfriend_refuse")
@@ -408,24 +526,43 @@ void HandlerCmd::saveFriendRequest(const qint64 userid,const qint64 userseq,cons
 void HandlerCmd::AddFriendSuccess(const qint64 convid,const qint64 myconvseq,const qint64 friendconvseq,const qint64 friendid,
                                   const QString&mycontent,const QString&friendcontent,const qint64 sendtime,const qint64 bindid,
                                   const qint64 syncseq,const QString&friendaccount,const QString&friendremark,const QString&friendname,
-                                  const QString&friendidentity)
+                                  const QString&friendidentity,const QString&mygreetuuid,const QString&friendgreetuuid)
 {
     //发送信息给数据库保存
     std::shared_ptr<QList<Mes>>allmes=std::make_shared<QList<Mes>>();
     //我的招呼信息
-    allmes->emplace_back(mycontent,sendtime,convid,myconvseq,userid);
+    Mes mygreet;
+    mygreet.content=mycontent;
+    mygreet.sendtime=sendtime;
+    mygreet.convid=convid;
+    mygreet.convseq=myconvseq;
+    mygreet.sendid=userid;
+    mygreet.uuid=mygreetuuid;
+    mygreet.status=static_cast<qint8>(MsgStatus::Delivered);
+    allmes->emplace_back(mygreet);
     //好友招呼信息
-    allmes->emplace_back(friendcontent,sendtime,convid,friendconvseq,friendid);
-    emit sendOfflineMes(allmes);
+    Mes friendgreet;
+    friendgreet.content=friendcontent;
+    friendgreet.sendtime=sendtime;
+    friendgreet.convid=convid;
+    friendgreet.convseq=friendconvseq;
+    friendgreet.sendid=friendid;
+    friendgreet.uuid=friendgreetuuid;
+    friendgreet.status=static_cast<qint8>(MsgStatus::Delivered);
+    allmes->emplace_back(friendgreet);
+
+    emit sendOfflineMes(userid,allmes);
     //通知状态改变将新通知信息发给数据库(只改状态和同步序列) 2为同意状态
     std::shared_ptr<QList<Notice>> allnotice=std::make_shared<QList<Notice>>();
     allnotice->emplace_back("",userid,-1,syncseq,bindid,-1,2,-1);
-    emit sendNoticeMes(allnotice);
+
     //发送新的会话种子
     std::shared_ptr<QList<qint64>>convidseed=std::make_shared<QList<qint64>>(QList<qint64>{convid});
-    emit sendConvSeed(convidseed);
-    //发送好友信息给ui渲染
+    emit sendConvSeed(userid,convidseed);
+    //发送好友信息给业务层保存和ui渲染
     emit NewFriendInfo(friendid,convid,friendaccount,friendname,friendremark,friendidentity);
+    //触发persistMes处理招呼信息
+    emit persistMes(allmes);
     //用户在好友通知界面渲染新通知状态
     if(avtiveview.NVT==NoticeViewType::FRIEND)
     {
@@ -466,15 +603,16 @@ void HandlerCmd::handleRegisterCmd(const QJsonObject&data)
     //账号已存在
     if(data.value("result").toString()=="useraccount_exists")
     {
-        useraccount_exists();
+        emit useraccount_exists();
     }
     else if(data.value("result").toString()=="register_sucess"){
         //注册成功
-        register_sucess(data.value("useraccount").toString());
+        QString useraccount=data.value("useraccount").toString();
+        emit register_sucess(useraccount);
     }
     else if(data.value("result").toString()=="register_failed"){
         //注册失败
-        register_failed();
+        emit register_failed();
     }
 }
 //处理登入请求
@@ -495,4 +633,142 @@ void HandlerCmd::handleRegister(const QString&username,const QString&password)
     info.insert("username",username);
     info.insert("userpassword",password);
     emit sendJson(info);
+}
+//处理发送消息回复（批量回执：遍历 meslist）
+void HandlerCmd::handleSendMessageReply(const QJsonObject&data)
+{
+    qDebug()<<"处理消息回执";
+    //服务器批量回执：meslist 是消息数组
+    QJsonArray meslist = data.value("meslist").toArray();
+
+    //分片序号
+    int chunk_seq = data.value("chunk_seq").toInt(-1);
+    int chunk_total = data.value("chunk_total").toInt(1);
+
+    //分片：缓存，收齐后合并处理
+    if (chunk_total > 1)
+    {
+        if (!mesCollector.add(chunk_seq, chunk_total, meslist))
+            return;  // 还没收齐
+        meslist = mesCollector.merged();
+    }
+
+    //解析消息数组（复用 parseMesArray）
+    std::shared_ptr<QList<Mes>> allmes = parseMesArray(meslist);
+
+    //分离自己发的和别人发的
+    std::shared_ptr<QList<Mes>> self = std::make_shared<QList<Mes>>();
+    std::shared_ptr<QList<Mes>> others = std::make_shared<QList<Mes>>();
+    for (auto &m : *allmes)
+    {
+        if (m.sendid == userid) self->emplace_back(m);
+        else others->emplace_back(m);
+    }
+
+    //自己发的：移除哈希表 + 批量落库更新 + mesStatusChanged 逐个发
+    if (!self->isEmpty())
+    {
+        for (const auto &m : *self)
+        {
+            QMutexLocker locker(&sendingMutex);
+            sendinghash.remove(m.uuid);
+        }
+        emit sendOfflineMes(userid, self);
+        for (const auto &m : *self)
+            emit mesStatusChanged(m.uuid, m.convid, static_cast<qint8>(MsgStatus::Delivered));
+    }
+
+    //别人发的：批量落库 + 分发
+    if (!others->isEmpty())
+        persistMes(others);
+}
+//初始化发送中哈希表（登录/断线重连拉完离线消息后）
+void HandlerCmd::initSendingHash(const std::shared_ptr<QList<Mes>>&sendingmes)
+{
+    qint64 now=QDateTime::currentMSecsSinceEpoch();
+    std::shared_ptr<QList<Mes>> faillist=std::make_shared<QList<Mes>>();//失败的消息
+    QList<QPair<QString,qint64>> failconvids;//失败的uuid+convid 通知UI
+    {
+        QMutexLocker locker(&sendingMutex);
+        for(const auto&m:*sendingmes)
+        {
+            //超时直接判失败
+            if(now-m.sendtime>TIMEOUT_MS)
+            {
+                Mes fm;
+                fm.uuid=m.uuid;
+                fm.convid=m.convid;
+                fm.convseq=-1;
+                fm.sendtime=m.sendtime;
+                fm.status=static_cast<qint8>(MsgStatus::Failed);
+                faillist->emplace_back(fm);
+                failconvids.append(qMakePair(m.uuid,m.convid));
+            }
+            //未超时加入哈希表等定时器重发
+            else
+                sendinghash.insert(m.uuid,{m.uuid,m.convid,m.content,m.sendtime,0});
+        }
+    }
+    //超时的批量落库
+    if(!faillist->isEmpty())
+        emit sendOfflineMes(userid,faillist);
+    //通知UI显示失败感叹号
+    for(const auto&fc:failconvids)
+        emit mesStatusChanged(fc.first,fc.second,static_cast<qint8>(MsgStatus::Failed));
+    //有发送中的开定时器
+    if(!sendinghash.isEmpty())
+        retryTimer.start(RETRY_INTERVAL);
+}
+//定时重发
+void HandlerCmd::onRetryTimeout()
+{
+    qint64 now=QDateTime::currentMSecsSinceEpoch();
+    std::shared_ptr<QList<Mes>> faillist=std::make_shared<QList<Mes>>();//失败的消息
+    QList<QPair<QString,qint64>> failconvids;//失败的uuid+convid 通知UI
+    {
+        QMutexLocker locker(&sendingMutex);
+        for(auto it=sendinghash.begin();it!=sendinghash.end();++it)
+        {
+            //没超时跳过
+            if(now-it->sendtime<=TIMEOUT_MS)
+                continue;
+            //还能重试 重发(同uuid服务器幂等)
+            if(it->retrycount<MAX_RETRY)
+            {
+                QJsonObject data;
+                data.insert("cmd","sendmessage");
+                data.insert("convid",it->convid);
+                data.insert("sendid",userid);
+                data.insert("content",it->content);
+                data.insert("uuid",it->uuid);
+                emit sendJson(data);
+                it->sendtime=now;
+                it->retrycount++;
+            }
+            //重试耗尽 构造失败消息
+            else
+            {
+                Mes fm;
+                fm.uuid=it->uuid;
+                fm.convid=it->convid;
+                fm.convseq=-1;
+                fm.sendtime=it->sendtime;
+                fm.status=static_cast<qint8>(MsgStatus::Failed);
+                faillist->emplace_back(fm);
+                failconvids.append(qMakePair(it->uuid,it->convid));
+            }
+        }
+        //标失败的从哈希表剔除
+        for(const auto&fc:failconvids)
+            sendinghash.remove(fc.first);
+    }
+    //批量落库
+    if(!faillist->isEmpty())
+        emit sendOfflineMes(userid,faillist);
+    //通知UI显示失败感叹号
+    for(const auto&fc:failconvids)
+        emit mesStatusChanged(fc.first,fc.second,static_cast<qint8>(MsgStatus::Failed));
+    //哈希表空 停定时器
+    if(sendinghash.isEmpty())
+        retryTimer.stop();
 }

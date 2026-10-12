@@ -13,9 +13,9 @@ ChatItem::ChatItem(IdentityInfo identityinfo,QString friendname,QWidget *parent)
     //垂直居中
     unreadBadge->setAlignment(Qt::AlignCenter);
     unreadBadge->setStyleSheet("background:#FA5151;color:#FFFFFF;"
-                               "border-radius:9px;font-size:10px;font-weight:bold;");
+                               "border-radius:6px;font-size:10px;font-weight:bold;");
     unreadBadge->setFixedHeight(18);
-    unreadBadge->setMinimumWidth(18);
+    unreadBadge->setMinimumWidth(12);
     unreadBadge->hide();
     unreadBadge->setText("0");
     //置顶
@@ -29,6 +29,8 @@ ChatItem::~ChatItem()
 
 void ChatItem::setSelected(bool checked)
 {
+    //状态没变化返回
+    if(selected==checked)return;
     selected=checked;
     SelectedBackGround();
 
@@ -44,6 +46,12 @@ void ChatItem::addUnreadCount()
     }
     else unreadBadge->setText(QString::number(unreadcount));
     unreadBadge->show();
+}
+//清空未读计数
+void ChatItem::removeUnreadCount()
+{
+    unreadBadge->hide();
+    unreadBadge->setText("0");
 }
 //双击窗口发出信号和身份标识创建聊天窗口
 void ChatItem::mouseDoubleClickEvent(QMouseEvent *event)
@@ -65,14 +73,6 @@ void ChatItem::mousePressEvent(QMouseEvent *event)
         emit Clicked(identityinfo.convid);
         //改变背景颜色
         setStyleSheet("#Textwidget{background-color:#D7D7D7}");
-        if(selected)
-        {
-            selected=false;
-        }
-        else
-        {
-            selected=true;
-        }
         //清空未读数隐藏未读提示
         unreadBadge->hide();
         unreadBadge->setText("0");

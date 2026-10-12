@@ -297,13 +297,13 @@ QComboBox QLineEdit
         <widget class="QLabel" name="selected">
          <property name="minimumSize">
           <size>
-           <width>60</width>
+           <width>100</width>
            <height>30</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>60</width>
+           <width>100</width>
            <height>30</height>
           </size>
          </property>
