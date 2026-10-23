@@ -89,7 +89,6 @@ void HandlerCmd::getOlderChatHistory(const qint64 convid)
 {
     //拉旧聊天记录
     emit getChatHistory_Older(convid);
-    qDebug()<<"拉旧";
 }
 //窗口独立
 void HandlerCmd::haveIndependChatWidget(const qint64 convid)
@@ -257,8 +256,6 @@ void HandlerCmd::getOfflineMes(const std::shared_ptr<QList<ConvSLInfo>>&convinfo
         convrow.insert("convid",row.convid);
         convrow.insert("lastseq",row.convseq);
         convinfoarray.append(convrow);
-        qDebug()<<"lastseq"<<row.convseq;
-
     }
     QJsonObject senddata;
     senddata.insert("cmd","getofflinemes");
@@ -290,8 +287,6 @@ void HandlerCmd::searchRequest(const QString&partaccount,const QString&lastaccou
 //处理搜索回复命令
 void HandlerCmd::handleSearchInfo(const QJsonObject&data)
 {
-    qDebug() << "搜索回复:" << data.value("result").toString()
-        << " 好友数:" << data.value("friendinfo").toArray().size();
     //搜索成功显示到搜索界面
     if(data.value("result")=="search_success")
     {
@@ -340,7 +335,6 @@ std::shared_ptr<QList<Mes>> HandlerCmd::parseMesArray(const QJsonArray&arr)
         m.uuid=row.value("uuid").toString();
         m.status=row.value("status").toInt();
         allmes->emplace_back(m);
-        qDebug()<<"m.content:"<<m.content;
     }
     return allmes;
 }
@@ -354,8 +348,10 @@ void HandlerCmd::saveOfflineMes(const QJsonObject&data)
     //分片：缓存，收齐后合并处理
     if (chunk_total > 1)
     {
+        // 还没收齐
         if (!offlineCollector.add(chunk_seq, chunk_total, offlinemes))
-            return;  // 还没收齐
+            return;
+        //收起了
         offlinemes = offlineCollector.merged();
     }
 
@@ -456,8 +452,6 @@ void HandlerCmd::handleaddfriend(const QJsonObject&data)
     //请求成功
     if(data.value("result")=="addfriend_success")
     {
-        qDebug() << "收到同意好友, friendidentity=" << data.value("friendidentity").toString()
-                 << " bindid=" << data.value("bindid").toInteger();
         addNewNotice(data.value("userid").toInteger(),
                      data.value("userseq").toInteger(),
                      data.value("bindid").toInteger(),
@@ -637,7 +631,6 @@ void HandlerCmd::handleRegister(const QString&username,const QString&password)
 //处理发送消息回复（批量回执：遍历 meslist）
 void HandlerCmd::handleSendMessageReply(const QJsonObject&data)
 {
-    qDebug()<<"处理消息回执";
     //服务器批量回执：meslist 是消息数组
     QJsonArray meslist = data.value("meslist").toArray();
 
@@ -687,7 +680,6 @@ void HandlerCmd::initSendingHash(const std::shared_ptr<QList<Mes>>&sendingmes)
 {
     qint64 now=QDateTime::currentMSecsSinceEpoch();
     std::shared_ptr<QList<Mes>> faillist=std::make_shared<QList<Mes>>();//失败的消息
-    QList<QPair<QString,qint64>> failconvids;//失败的uuid+convid 通知UI
     {
         QMutexLocker locker(&sendingMutex);
         for(const auto&m:*sendingmes)
@@ -702,7 +694,6 @@ void HandlerCmd::initSendingHash(const std::shared_ptr<QList<Mes>>&sendingmes)
                 fm.sendtime=m.sendtime;
                 fm.status=static_cast<qint8>(MsgStatus::Failed);
                 faillist->emplace_back(fm);
-                failconvids.append(qMakePair(m.uuid,m.convid));
             }
             //未超时加入哈希表等定时器重发
             else
@@ -712,63 +703,86 @@ void HandlerCmd::initSendingHash(const std::shared_ptr<QList<Mes>>&sendingmes)
     //超时的批量落库
     if(!faillist->isEmpty())
         emit sendOfflineMes(userid,faillist);
-    //通知UI显示失败感叹号
-    for(const auto&fc:failconvids)
-        emit mesStatusChanged(fc.first,fc.second,static_cast<qint8>(MsgStatus::Failed));
+    //通知UI显示失败感叹号（直接遍历 faillist，不再维护第二个列表）
+    for(const auto&m:*faillist)
+        emit mesStatusChanged(m.uuid,m.convid,static_cast<qint8>(MsgStatus::Failed));
     //有发送中的开定时器
     if(!sendinghash.isEmpty())
         retryTimer.start(RETRY_INTERVAL);
+}
+//第 retrycount 次重试的累计截止时间（距首次发送，单位ms）
+//retrycount 0→5s、1→20s、2→45s（即间隔 5/15/25s）
+static qint64 retryDeadline(int retrycount)
+{
+    switch(retrycount)
+    {
+    case 0:return 5000;
+    case 1:return 20000;
+    case 2:return 45000;
+    default:return TIMEOUT_MS;
+    }
 }
 //定时重发
 void HandlerCmd::onRetryTimeout()
 {
     qint64 now=QDateTime::currentMSecsSinceEpoch();
     std::shared_ptr<QList<Mes>> faillist=std::make_shared<QList<Mes>>();//失败的消息
-    QList<QPair<QString,qint64>> failconvids;//失败的uuid+convid 通知UI
+    QList<SendingInfo> toretry;//需要重发的（锁内收集，锁外发送）
+    bool empty=false;
     {
         QMutexLocker locker(&sendingMutex);
-        for(auto it=sendinghash.begin();it!=sendinghash.end();++it)
+        for(auto it=sendinghash.begin();it!=sendinghash.end();)
         {
-            //没超时跳过
-            if(now-it->sendtime<=TIMEOUT_MS)
+            //距首次发送的累计时间（sendtime 是原始时间，重发不重置）
+            qint64 elapsed=now-it->sendtime;
+            //重试次数用尽：等最后一次的ACK，超过总超时判失败
+            if(it->retrycount>=MAX_RETRY)
+            {
+                if(elapsed>=TIMEOUT_MS)
+                {
+                    Mes fm;
+                    fm.uuid=it->uuid;
+                    fm.convid=it->convid;
+                    fm.convseq=-1;
+                    fm.sendtime=it->sendtime;
+                    fm.status=static_cast<qint8>(MsgStatus::Failed);
+                    faillist->emplace_back(fm);
+                    it=sendinghash.erase(it);
+                    continue;
+                }
+                ++it;
                 continue;
-            //还能重试 重发(同uuid服务器幂等)
-            if(it->retrycount<MAX_RETRY)
-            {
-                QJsonObject data;
-                data.insert("cmd","sendmessage");
-                data.insert("convid",it->convid);
-                data.insert("sendid",userid);
-                data.insert("content",it->content);
-                data.insert("uuid",it->uuid);
-                emit sendJson(data);
-                it->sendtime=now;
-                it->retrycount++;
             }
-            //重试耗尽 构造失败消息
-            else
+            //还没到该重试的时刻
+            if(elapsed<retryDeadline(it->retrycount))
             {
-                Mes fm;
-                fm.uuid=it->uuid;
-                fm.convid=it->convid;
-                fm.convseq=-1;
-                fm.sendtime=it->sendtime;
-                fm.status=static_cast<qint8>(MsgStatus::Failed);
-                faillist->emplace_back(fm);
-                failconvids.append(qMakePair(it->uuid,it->convid));
+                ++it;
+                continue;
             }
+            //到了重试时刻：先收集，锁外一起重发
+            toretry.append(*it);
+            it->retrycount++;
+            ++it;
         }
-        //标失败的从哈希表剔除
-        for(const auto&fc:failconvids)
-            sendinghash.remove(fc.first);
+        empty=sendinghash.isEmpty();
     }
-    //批量落库
+    //锁外发送重发
+    for(const auto&info:toretry)
+    {
+        QJsonObject data;
+        data.insert("cmd","sendmessage");
+        data.insert("convid",info.convid);
+        data.insert("sendid",userid);
+        data.insert("content",info.content);
+        data.insert("uuid",info.uuid);
+        emit sendJson(data);
+    }
+    //锁外批量落库 + 通知UI（直接遍历 faillist，不再维护第二个列表）
     if(!faillist->isEmpty())
         emit sendOfflineMes(userid,faillist);
-    //通知UI显示失败感叹号
-    for(const auto&fc:failconvids)
-        emit mesStatusChanged(fc.first,fc.second,static_cast<qint8>(MsgStatus::Failed));
+    for(const auto&m:*faillist)
+        emit mesStatusChanged(m.uuid,m.convid,static_cast<qint8>(MsgStatus::Failed));
     //哈希表空 停定时器
-    if(sendinghash.isEmpty())
+    if(empty)
         retryTimer.stop();
 }

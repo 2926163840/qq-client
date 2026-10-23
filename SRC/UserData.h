@@ -138,8 +138,8 @@ struct SendingInfo
     int retrycount;     // 重试次数
 };
 
-#define TIMEOUT_MS 30000      // 30秒超时
-#define MAX_RETRY 6           // 最多重试6次
+#define TIMEOUT_MS 60000      // 60秒总超时（3次重试5+15+25=45s，留余量给最后的ACK）
+#define MAX_RETRY 3           // 最多重试3次
 #define RETRY_INTERVAL 5000   // 定时器5秒
 //通知结构体
 struct Notice

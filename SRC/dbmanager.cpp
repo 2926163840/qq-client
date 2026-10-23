@@ -1,4 +1,5 @@
 #include "dbmanager.h"
+#include <QCoreApplication>
 
 DBManager::DBManager(QObject *parent)
     : QObject{parent}
@@ -75,7 +76,6 @@ void DBManager::sowConvSeq(const qint64 userid,const std::shared_ptr<QList<qint6
     }
     //执行sql语句
     sql.exec();
-    qDebug()<<"播种成功";
 }
 //播种通知游标
 void DBManager::sowNoticeSeq(const qint64 userid)
@@ -120,7 +120,6 @@ void DBManager::getConvInfo(const qint64 userid,const std::shared_ptr<QList<qint
     while(sql.next())
     {
         qint64 lastconvseq=sql.value("lastconvseq").toLongLong();
-        qDebug()<<lastconvseq;
         qint64 convid=sql.value("convid").toLongLong();
         //将会话信息插入哈希表中        ConvInfo
         convinfohash.emplace(convid,lastconvseq);
@@ -153,7 +152,6 @@ void DBManager::getNoticeInfo(const qint64 userid)
 //保存聊天消息到本地
 void DBManager::saveOfflineMes(const qint64 userid,const std::shared_ptr<QList<Mes>>&mesinfo)
 {
-    qDebug()<<"mesinfo"<<mesinfo->count();
     QSqlQuery sql(db);
     //sql语句（upsert：uuid存在则更新 不存在则插入）
     QString sql_before="insert into messagetable(convid,convseq,sendid,content,sendtime,uuid,status) values(?,?,?,?,?,?,?)";
@@ -194,11 +192,8 @@ void DBManager::saveOfflineMes(const qint64 userid,const std::shared_ptr<QList<M
     //执行sql语句
     if(!sql.exec())
     {
-        qDebug() << "saveOfflineMes SQL失败:" << sql.lastError().text();
-        qDebug() << "完整SQL:" << sql_str;
         return;
     }
-    qDebug() << "saveOfflineMes 成功, 影响行数:" << sql.numRowsAffected();
     //遍历会话信息改变的容器并更新会话连续序列游标
     for(const auto&convid:changedconvid)
     {
@@ -575,7 +570,7 @@ void DBManager::DBInit()
     //获取sqlite实例
     db=QSqlDatabase::addDatabase("QSQLITE",USERDB);
     //连接库名
-    db.setDatabaseName("D:/QQProgram/client/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/debug/user_sqlite.db");
+    db.setDatabaseName(QCoreApplication::applicationDirPath() + "/user_sqlite.db");
     if(!db.open())
     {
         lg()(LogFatal,LogSCREEN,QString("数据库打开失败:%1").arg(db.lastError().text()));
